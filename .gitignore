@@ -87,3 +87,5 @@ fabric.properties
 
 
 .clang-format
+
+CMakeLists.txt
