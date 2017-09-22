@@ -1,7 +1,7 @@
 //
 // Compiler project -- main driver for part 1
 //
-#include "HLexer.h"
+#include "hlexer.h"
 
 using namespace std;
 

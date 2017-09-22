@@ -2,7 +2,7 @@
 #ifndef LEXER_HLEXER_H
 #define LEXER_HLEXER_H
 
-#include "Lexer.h"
+#include "lexer.h"
 
 class HLexer : public Lexer {
  public:
