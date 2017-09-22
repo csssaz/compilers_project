@@ -3,7 +3,7 @@
 //
 #include <iostream>
 #include <fstream>
-#include "HLexer.h"
+#include "hlexer.h"
 #include "flexer.h"
 
 using namespace std;

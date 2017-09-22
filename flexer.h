@@ -3,7 +3,7 @@
 #define LEXER_FLEXER_H
 
 #include <FlexLexer.h>
-#include "Lexer.h"
+#include "lexer.h"
 
 class FLexer : public Lexer {
  public:
