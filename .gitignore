@@ -88,6 +88,4 @@ fabric.properties
 
 .clang-format
 
-CMakeLists.txt
-
-.idea/misc.xml
+.idea/

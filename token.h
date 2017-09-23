@@ -7,7 +7,7 @@
 enum Tokentype {
   Identifier = 258,
   Number,
-  // Logical operators
+  // Relational operators
   OpRelEQ,
   OpRelNEQ,
   OpRelLT,
