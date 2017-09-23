@@ -928,14 +928,17 @@ YY_RULE_SETUP
 #line 76 "flexer.l"
 { return Tokentype::ErrUnknown; }
 	YY_BREAK
+/* End of file */
+case YY_STATE_EOF(INITIAL):
+#line 79 "flexer.l"
+{ return Tokentype::EOI; }
+	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 77 "flexer.l"
+#line 80 "flexer.l"
 ECHO;
 	YY_BREAK
-#line 937 "/home/karin/Documents/fri/letnik3_1/C/Projects/GitHubRepository/compilers_project/cmake-build-debug/../flexer.cpp"
-case YY_STATE_EOF(INITIAL):
-	yyterminate();
+#line 942 "/home/karin/Documents/fri/letnik3_1/C/Projects/GitHubRepository/compilers_project/cmake-build-debug/../flexer.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1897,7 +1900,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 77 "flexer.l"
+#line 80 "flexer.l"
 
 
 

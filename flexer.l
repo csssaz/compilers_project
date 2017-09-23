@@ -70,8 +70,11 @@ comment "/*"(.|\n)*"*/"|"//".*\n
 {number}        { return Tokentype::Number; }
 
  /* Identifier */
-{identifier}     { return Tokentype::Identifier; }
+{identifier}    { return Tokentype::Identifier; }
 
  /* Lexical errors */
 .               { return Tokentype::ErrUnknown; }
+
+ /* End of file */
+<<EOF>>         { return Tokentype::EOI; }
 %%
