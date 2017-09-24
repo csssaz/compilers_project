@@ -1,54 +1,63 @@
-#include <cassert>
-#include <iostream>
+#ifndef REGEX_H
+#define REGEX_H
+
 #include <map>
 #include <stack>
 #include <string>
-#define DEBUG asdasd
-namespace regex {
+#include <vector>
 
-std::map<char, int> operator_precedence = {
-    {'*', 0}, {'.', 1}, {'|', 2},
+namespace regex {
+// Node used in NFA directed graph.
+class Node {
+ public:
+  // index in Node vector
+  int node_index_;
+  // to use in dfs
+  bool visited_;
+  std::vector<int> epsilon_edges_;
+  // letter -> [node_1, node_2, ...]
+  std::map<char, std::vector<int>> edges_;
+  bool is_accepting_;
+
+  Node();
+  Node(int index);
+
+
+  void AddEdge(int to, char symbol);
+  void AddEpsilonEdge(int to);
 };
 
-// convert a regular expresion from infix to
-// postfix form using the shunting yard algorithm.
-// e.g. "a.(b|c).d" -> "abc|.d."
-// this assumes all continuous input symbols are joined
-// by the concatenation operator.
-std::string InfixToPostfix(std::string &infix_regex) {
-  std::string postfix;
-  std::stack<char> s;
-  for (char c : infix_regex) {
-    bool is_operator = (operator_precedence.count(c) != 0);
-    if (!is_operator && c != '(' && c != ')') {
-      postfix.push_back(c);
-    } else if (is_operator) {
-      while (!s.empty() &&
-             s.top() != '(' &&
-             operator_precedence[s.top()] <= operator_precedence[c]) {
-        postfix.push_back(s.top());
-        s.pop();
-      }
-      s.push(c);
-    } else if (c == '(') {
-      s.push(c);
-    } else {
-      assert(c == ')');
-      while (!s.empty() && s.top() != '(') {
-        postfix.push_back(s.top());
-        s.pop();
-      }
-      assert(!s.empty() && s.top() == '(');
-      s.pop();
-    }
-  }
-  while (!s.empty()) {
-    postfix.push_back(s.top());
-    s.pop();
-  }
-  #ifdef DEBUG
-    std::cerr << "infix: " << infix_regex << " " << postfix << std::endl;
-  #endif
-  return postfix;
+// Match a (simplified) regular expression
+// Example:
+//    regex::RegexMatcher r("(a|b)*.c");
+//    std::string text = "aaaaabbbabababc";
+//    r.Matches(text);
+class RegexMatcher {
+ public:
+  RegexMatcher(std::string infix_regex);
+  std::string postfix_regex_;
+
+  bool Matches(const std::string &input);
+
+ private:
+  int start_state_, accept_state_;
+  std::vector<Node> states_;
+  std::stack<std::tuple<int, int>> build_stack_;
+
+  std::tuple<Node, Node> GetStartEndNodes();
+
+  void DfsEpsilon(int current_state, std::vector<int> &visited);
+
+  void AddSymbol(char symbol);
+  
+  void AddUnion();
+  
+  void AddConcatenation();
+  
+  void AddKleeneStar();
+  
+  std::string InfixToPostfix(std::string &infix_regex);
+};
+
 }
-}
+#endif
