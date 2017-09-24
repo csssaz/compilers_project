@@ -1,0 +1,41 @@
+class Program {
+  int numbers[10], steps;
+
+  static void main() {
+    int i, j, s;
+    real r, t;
+
+    steps = 10;
+    for (i = 0; i < steps; i++) {
+      for (j = i; j >= 0; j--) {
+        s = s + i - j;
+        r = r + notRandom(i, j);
+        if (r > 35 || s <= -10) {
+          break;
+        }
+      }
+
+      /*
+      if (r > 20) {
+        r = r % 20;
+      }
+      */
+
+      numbers[i] = s;
+      if (!(s > 11 && s < 13)) {
+        numbers[i] = s - 1;
+      } else {
+        continue;
+      }
+    }
+
+    if (numbers[1] == numbers[7] || numbers[2] != numbers[7]) {
+      numbers[(i + j) % 10] = 5
+    }
+  }
+
+  // Function that does NOT return a random number.
+  static real notRandom(int a, int b) {
+    return a * 1.5E2 - b / 4.34 + 10;
+  }
+}
