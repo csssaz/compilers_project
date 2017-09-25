@@ -101,6 +101,7 @@ TEST_CASE("flex parser") {
   REQUIRE(token.type == Tokentype::Number);
   REQUIRE(token.line == 1);
   REQUIRE(token.lexeme == test_string);
+  delete lexer;
 }
 
 TEST_CASE("flex parser_2") {
@@ -124,4 +125,5 @@ TEST_CASE("flex parser_2") {
     REQUIRE(token.line == std::get<1>(test_tuple));
     REQUIRE(token.type == std::get<2>(test_tuple));
   }
+  delete lexer;
 }
