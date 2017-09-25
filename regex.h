@@ -51,12 +51,16 @@ class RegexMatcher {
 
   void AddSymbol(char symbol);
   
+  // |
   void AddUnion();
-  
+  // .
   void AddConcatenation();
-  
+  // *
   void AddKleeneStar();
-  
+  // +
+  void AddPlusOperator();
+  // ?
+  void AddOneOrZero();
 };
 
 }

@@ -208,6 +208,71 @@ TEST_CASE("keyword matching") {
     REQUIRE(compiled_regex.Matches(test_string) == false);
 }
 
+TEST_CASE("number matching") {
+  std::string digits = "(0|1|2|3|4|5|6|7|8|9)+";
+  std::string optional_fraction = "(." + digits + ")?";
+  std::string optional_exponent = "(E(\\+|-)?" + digits + ")?";
+  std::string number = digits + optional_fraction + optional_exponent; 
+  
+  regex::RegexMatcher compiled_regex(number);
+  std::vector<std::string> test_correct({
+      "1234",
+      "123.3",
+      "0.44455667",
+      "1212E441",
+      "1.1212E+123",
+      "123.9966E-12341",
+      "100000.0000E-1923",
+      "1212.664545",
+      "0.4E2",
+      "0.1212E-1",
+      "0",
+  });
+  for (auto test_string : test_correct)
+    REQUIRE(compiled_regex.Matches(test_string) == true);
+
+  std::vector<std::string> test_incorrect({
+      "12121.1212.1212",
+      "123123E",
+      "0.",
+      ".1212E43",
+      "1212.E31",
+      "999.999e+12",
+      "1000.0000EE1212",
+      "567.12E1212E1212",
+      "5676.1212E-+1212",
+      "0000E123.5",
+  });
+  for (auto test_string : test_incorrect)
+    REQUIRE(compiled_regex.Matches(test_string) == false);
+}
+
+TEST_CASE("whitespace") {
+  std::string regex = "(\n|\t|\r| )+";
+  regex::RegexMatcher compiled_regex(regex);
+
+  std::vector<std::string> test_correct({
+      "                \t",
+      "\t\t\t\t\n\n\n\r\r\r      ",
+      " ",
+      "\t",
+      "\r",
+      "\n\n\t\t      \r\r \t   \n",
+  });
+  
+  for (auto test_string : test_correct)
+    REQUIRE(compiled_regex.Matches(test_string) == true);
+
+  std::vector<std::string> test_incorrect({
+      "       .      ",
+      "\t\t\t\t\t a",
+      "a\t\t\t\t",
+      "            )",
+  });
+
+  for (auto test_string : test_incorrect)
+    REQUIRE(compiled_regex.Matches(test_string) == false);
+}
 
 TEST_CASE("flex parser") {
   SymbolTable sym;

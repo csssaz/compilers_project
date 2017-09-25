@@ -1,22 +1,26 @@
 #include "regex.h"
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 namespace regex {
 
 // we escape the original operators with 
 // non printable characters.
 namespace operators {
-const char STAR = 26;
-const char UNION = 27;
-const char CONCATENATION = 28;
-const char LPAR = 29;
-const char RPAR = 30;
+const char STAR = 20;
+const char UNION = 21;
+const char CONCATENATION = 22;
+const char PLUS = 23;
+const char ONE_OR_ZERO = 24;
+const char LPAR = 25;
+const char RPAR = 26;
 }
 
 std::map<char, char> operator_to_hidden = {
   {'*', operators::STAR},
   {'|', operators::UNION},
+  {'+', operators::PLUS},
+  {'?', operators::ONE_OR_ZERO},
   {'(', operators::LPAR},
   {')', operators::RPAR}
 };
@@ -26,11 +30,15 @@ std::map<char, char> hidden_to_operator = {
   {operators::UNION, '|'},
   {operators::LPAR, '('},
   {operators::RPAR, ')'},
-  {operators::CONCATENATION, '.'}
+  {operators::CONCATENATION, '.'},
+  {operators::PLUS, '+'},
+  {operators::ONE_OR_ZERO, '?'}
 };
 
 std::map<char, int> operator_precedence = {
   {operators::STAR, 0},
+  {operators::PLUS, 0},
+  {operators::ONE_OR_ZERO, 0},
   {operators::CONCATENATION, 1},
   {operators::UNION, 2}
 };
@@ -62,6 +70,8 @@ std::string PreProcessRegex(std::string infix_regex) {
         c != '(' &&
         infix_regex[i + 1] != '|' &&
         infix_regex[i + 1] != ')' &&
+        infix_regex[i + 1] != '+' &&
+        infix_regex[i + 1] != '?' &&
         infix_regex[i + 1] != '*') {
       fixed.push_back(operators::CONCATENATION);
     }
@@ -117,7 +127,6 @@ std::string InfixToPostfix(std::string &infix_regex) {
   return postfix;
 }
 
-
 Node::Node() : node_index_(-1), is_accepting_(false), visited_(false) {}
 
 Node::Node(int index)
@@ -134,16 +143,20 @@ void Node::AddEpsilonEdge(int to) {
 RegexMatcher::RegexMatcher(std::string infix_regex)
     : postfix_regex_(regex::InfixToPostfix(infix_regex)) {
   for (char c : postfix_regex_) {
-    if (c == operators::UNION) {
+    if (c == operators::UNION)
       AddUnion();
-    } else if (c == operators::CONCATENATION) {
+    else if (c == operators::CONCATENATION)
       AddConcatenation();
-    } else if (c == operators::STAR) {
+    else if (c == operators::STAR)
       AddKleeneStar();
-    } else {
+    else if (c == operators::PLUS)
+      AddPlusOperator();
+    else if (c == operators::ONE_OR_ZERO)
+      AddOneOrZero();
+    else
       AddSymbol(c);
-    }
   }
+  std::cerr << "compiled" << std::endl;
   std::tie(start_state_, accept_state_) = build_stack_.top();
   build_stack_.pop();
   assert(build_stack_.empty());
@@ -233,6 +246,49 @@ void RegexMatcher::AddKleeneStar() {
   build_stack_.push(
       std::make_tuple(start_state.node_index_, end_state.node_index_));
 }
+
+// Creates an NFA for the Plus operator.
+// This is esentially the same as Kleene star
+// but we need at least one match
+void RegexMatcher::AddPlusOperator() {
+  int start_a, end_a;
+  std::tie(start_a, end_a) = build_stack_.top();
+  build_stack_.pop();
+
+  Node start_state, end_state;
+  std::tie(start_state, end_state) = GetStartEndNodes();
+
+  start_state.AddEpsilonEdge(start_a);
+  states_[end_a].AddEpsilonEdge(start_a);
+  states_[end_a].AddEpsilonEdge(end_state.node_index_);
+
+  states_.push_back(start_state);
+  states_.push_back(end_state);
+  build_stack_.push(
+      std::make_tuple(start_state.node_index_, end_state.node_index_));
+}
+
+// NFA for ? operator: this means we allow
+// either one or zero matches of the NFA that is
+// popped.
+void RegexMatcher::AddOneOrZero() {
+  int start_a, end_a;
+  std::tie(start_a, end_a) = build_stack_.top();
+  build_stack_.pop();
+
+  Node start_state, end_state;
+  std::tie(start_state, end_state) = GetStartEndNodes();
+
+  start_state.AddEpsilonEdge(end_state.node_index_);
+  start_state.AddEpsilonEdge(start_a);
+  states_[end_a].AddEpsilonEdge(end_state.node_index_);
+
+  states_.push_back(start_state);
+  states_.push_back(end_state);
+  build_stack_.push(
+      std::make_tuple(start_state.node_index_, end_state.node_index_));
+}
+
 
 // method to compute the epsilon closure of a given state
 // it recursively visits the states reachable through
