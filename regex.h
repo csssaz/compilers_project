@@ -35,14 +35,15 @@ class Node {
 class RegexMatcher {
  public:
   RegexMatcher(std::string infix_regex);
-  std::string postfix_regex_;
 
   bool Matches(const std::string &input);
+  std::string postfix_regex();
 
  private:
   int start_state_, accept_state_;
   std::vector<Node> states_;
   std::stack<std::tuple<int, int>> build_stack_;
+  std::string postfix_regex_;
 
   std::tuple<Node, Node> GetStartEndNodes();
 
@@ -56,7 +57,6 @@ class RegexMatcher {
   
   void AddKleeneStar();
   
-  std::string InfixToPostfix(std::string &infix_regex);
 };
 
 }
