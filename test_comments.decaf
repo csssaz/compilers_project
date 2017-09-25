@@ -1,0 +1,24 @@
+// File for testing comment recognition
+class Program {
+  /* Global variables */
+  int i, j;
+  real number;
+
+  /* Main function */
+  static void main() {
+    i = 0;
+    j = 1;
+    // If statement
+    if ( i < j ) {
+      number = 12.34;
+    }
+    else {
+      number = 12.34E7
+    }
+    i = i + j;
+  }
+  /*
+  End of
+  main function
+  */
+}
