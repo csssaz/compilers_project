@@ -101,4 +101,29 @@ TEST_CASE("flex parser") {
   REQUIRE(token.type == Tokentype::Number);
   REQUIRE(token.line == 1);
   REQUIRE(token.lexeme == test_string);
+  delete lexer;
+}
+
+TEST_CASE("flex parser_2") {
+  SymbolTable sym;
+  std::string test_string = "a = 5;";
+  std::stringstream sf(test_string);
+
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+    std::make_tuple("a", 1, Tokentype::Identifier),
+    std::make_tuple("=", 1, Tokentype::OpAssign),
+    std::make_tuple("5", 1, Tokentype::Number),
+    std::make_tuple(";", 1, Tokentype::ptSemicolon)
+  };
+
+  Lexer* lexer;
+  lexer = new FLexer(sf, sym);
+  Token token;
+  for (auto test_tuple : expected_output) {
+    lexer->get_next(token);
+    REQUIRE(token.lexeme == std::get<0>(test_tuple));
+    REQUIRE(token.line == std::get<1>(test_tuple));
+    REQUIRE(token.type == std::get<2>(test_tuple));
+  }
+  delete lexer;
 }
