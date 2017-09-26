@@ -288,18 +288,9 @@ TEST_CASE("flex parser") {
   delete lexer;
 }
 
-TEST_CASE("flex parser_2") {
+void test_lexer(std::string test_string, std::vector<std::tuple<std::string, int, Tokentype>> expected_output) {
   SymbolTable sym;
-  std::string test_string = "a = 5;";
   std::stringstream sf(test_string);
-
-  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
-    std::make_tuple("a", 1, Tokentype::Identifier),
-    std::make_tuple("=", 1, Tokentype::OpAssign),
-    std::make_tuple("5", 1, Tokentype::Number),
-    std::make_tuple(";", 1, Tokentype::ptSemicolon)
-  };
-
   Lexer* lexer;
   lexer = new FLexer(sf, sym);
   Token token;
@@ -310,4 +301,31 @@ TEST_CASE("flex parser_2") {
     REQUIRE(token.type == std::get<2>(test_tuple));
   }
   delete lexer;
+}
+
+TEST_CASE("flex parser comments") {
+  std::string test_string = "a = 5; /* Comment */\n// New line comment \nb = 10.54E4; /* Comment */";
+
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+    std::make_tuple("a", 1, Tokentype::Identifier),
+    std::make_tuple("=", 1, Tokentype::OpAssign),
+    std::make_tuple("5", 1, Tokentype::Number),
+    std::make_tuple(";", 1, Tokentype::ptSemicolon),
+    std::make_tuple("b", 3, Tokentype::Identifier),
+    std::make_tuple("=", 3, Tokentype::OpAssign),
+    std::make_tuple("10.54E4", 3, Tokentype::Number),
+    std::make_tuple(";", 3, Tokentype::ptSemicolon)
+  };
+
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("flex parser comment err") {
+  std::string test_string = "/* Not closed comment";
+
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("/* Not closed comment", 1, Tokentype::ErrUnknown)
+  };
+
+  test_lexer(test_string, expected_output);
 }
