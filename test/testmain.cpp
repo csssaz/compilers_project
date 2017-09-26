@@ -274,6 +274,36 @@ TEST_CASE("whitespace") {
     REQUIRE(compiled_regex.Matches(test_string) == false);
 }
 
+TEST_CASE("input file") {
+  std::string test_string =
+      "int x = 1345.13\n\treal my_var_name = 13.4E+9 - 13";
+  std::stringstream sf(test_string);
+  regex::RegexMatcher r(sf);
+
+  std::vector<std::pair<Tokentype, std::string>> expected_output({
+      {Tokentype::kwInt, "int"},
+      {Tokentype::Identifier, "x"},
+      {Tokentype::OpAssign, "="},
+      {Tokentype::Number, "1345.13"},
+      {Tokentype::kwReal, "real"},
+      {Tokentype::Identifier, "my_var_name"},
+      {Tokentype::OpAssign, "="},
+      {Tokentype::Number, "13.4E+9"},
+      {Tokentype::OpArtMinus, "-"},
+      {Tokentype::Number, "13"},
+  });
+
+  for (auto test_case : expected_output) {
+    Tokentype type;
+    std::string lexeme;
+    std::tie(type, lexeme) = test_case;
+    REQUIRE(r.NextToken() == static_cast<int>(type));
+    REQUIRE(r.GetLexeme() == lexeme);
+  }
+
+  REQUIRE(r.NextToken() == static_cast<int>(Tokentype::EOI));
+}
+
 TEST_CASE("flex parser") {
   SymbolTable sym;
   std::string test_string = "1345.13";

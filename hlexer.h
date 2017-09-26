@@ -3,6 +3,7 @@
 #define LEXER_HLEXER_H
 
 #include "lexer.h"
+#include "regex.h"
 
 class HLexer : public Lexer {
  public:
@@ -12,8 +13,7 @@ class HLexer : public Lexer {
   virtual ~HLexer();
 
  private:
-  char c_;
-  int line_no_;
+  regex::RegexMatcher lexer_;
 };
 
 #endif //LEXER_HLEXER_H
