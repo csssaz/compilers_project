@@ -13,10 +13,12 @@ identifier {letter_}({letter_}|{digit})*
 optional_fraction ("."{digits})?
 optional_exponent ("E"("+"|"-")?{digits})?
 number {digits}{optional_fraction}{optional_exponent}
-comment "/*"[^*/\/]*"*/"|"//".*\n
+comment ("/*"[^*/\/]*"*/")|("//".*\n)
+unclosed_comment "/*"[^*/\/]*
 %%
 {ws}+             /* do nothing */
 {comment}         /* do nothing */
+{unclosed_comment} { return Tokentype::ErrUnknown; }
 
  /* Relational operators */
 "=="            { return Tokentype::OpRelEQ; }
