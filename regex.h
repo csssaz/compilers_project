@@ -81,6 +81,8 @@ class RegexMatcher {
   void AddPlusOperator();
   // ?
   void AddOneOrZero();
+
+  void CommentRegex();
 };
 
 }

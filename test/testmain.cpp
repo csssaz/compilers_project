@@ -274,6 +274,15 @@ TEST_CASE("whitespace") {
     REQUIRE(compiled_regex.Matches(test_string) == false);
 }
 
+
+TEST_CASE("comments") {
+  std::string test_string = "/* 12344.3 asdasd\n\n */";
+  std::stringstream sf(test_string);
+  regex::RegexMatcher r(sf);
+  REQUIRE(r.NextToken() == static_cast<int>(Tokentype::EOI));
+  REQUIRE(r.GetLexeme() == test_string);
+}
+
 TEST_CASE("input file") {
   std::string test_string =
       "int x = 1345.13\n\treal my_var_name = 13.4E+9 - 13";

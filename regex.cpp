@@ -43,7 +43,6 @@ std::map<char, int> operator_precedence = {
   {operators::UNION, 2}
 };
 
-
 // convert operators to special symbols
 // and add explicit concatenation.
 std::string PreProcessRegex(std::string infix_regex) {
@@ -186,8 +185,12 @@ RegexMatcher::RegexMatcher(std::istream &is)
     if (regex == "whitespace") {
       regex = "(\n|\t|\r| )";
     }
-    std::string postfix_regex = regex::InfixToPostfix(regex);
-    ConstructPostfix(postfix_regex);
+    if (regex == "comments") {
+      CommentRegex();
+    } else {
+      std::string postfix_regex = regex::InfixToPostfix(regex);
+      ConstructPostfix(postfix_regex);
+    }
     int initial, accept;
     std::tie(initial, accept) = build_stack_.top();
     states_[accept].token_type_ = token_type;
@@ -231,6 +234,26 @@ std::string RegexMatcher::postfix_regex() {
 std::tuple<Node, Node> RegexMatcher::GetStartEndNodes() {
   int num_states = static_cast<int>(states_.size());
   return std::make_tuple(Node(num_states), Node(num_states + 1));
+}
+
+// method for special comment regex because why not
+void RegexMatcher::CommentRegex() {
+  AddSymbol('/');
+  AddSymbol('*');
+  AddConcatenation();
+  AddSymbol('*');
+  AddSymbol('/');
+  AddConcatenation();
+  int s_a, e_a, s_b, e_b;
+  std::tie(s_b, e_b) = build_stack_.top();
+  build_stack_.pop();
+  std::tie(s_a, e_a) = build_stack_.top();
+  build_stack_.pop();
+  states_[e_a].AddEpsilonEdge(s_b);
+  // wildcard transitions. very ugly.
+  for (char c = 9; c <= 126; c++)
+    states_[s_b].AddEdge(s_b, c);
+  build_stack_.push({s_a, e_b});
 }
 
 // NFA for a single symbol.
@@ -440,6 +463,12 @@ int RegexMatcher::NextToken() {
         lexeme_end = forward_;
         at_least_one = true;
         chosen = std::min(chosen, reached);
+        // TODO: fix magic number
+        // non greedy match for comments
+        if (states_[reached].token_type_ == -3) {
+          final_state = reached;
+          break;
+        }
       }
     }
     final_state = at_least_one ? chosen : final_state;
@@ -459,7 +488,7 @@ int RegexMatcher::NextToken() {
   }
    
   return final_state == -1 ? static_cast<int>(Tokentype::ErrUnknown)
-                           : (states_[final_state].token_type_ == -2
+                           : (states_[final_state].token_type_ <= -2
                                   ? NextToken()
                                   : states_[final_state].token_type_);
 }
