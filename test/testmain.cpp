@@ -304,7 +304,7 @@ void test_lexer(std::string test_string, std::vector<std::tuple<std::string, int
 }
 
 TEST_CASE("flex parser comments") {
-  std::string test_string = "a = 5; /* Comment */\n// New line comment \nb = 10.54E4; /* Comment */";
+  std::string test_string = "a = 5; /* Comment */\n\nb = 10.54E4; /* Comment */";
 
   std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
     std::make_tuple("a", 1, Tokentype::Identifier),
