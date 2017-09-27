@@ -3,7 +3,7 @@ project(Compilers)
 
 add_subdirectory(test)
 
-set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include")
+set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include -Wall -Wextra -ansi -pedantic")
 find_package(FLEX)
 FLEX_TARGET(Flexer flexer.l ${CMAKE_CURRENT_BINARY_DIR}/../flexer.cpp)
 
