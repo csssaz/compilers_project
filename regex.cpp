@@ -168,7 +168,7 @@ RegexMatcher::RegexMatcher(std::string infix_regex)
 // Receives as parameter the input stream to be used to parse
 RegexMatcher::RegexMatcher(std::istream &is)
     : eoi_(false), line_no_(1), forward_(nullptr) {
-  std::string filename = "../hregex.in";
+  std::string filename = "hregex.in";
   std::ifstream fin(filename);
   if (!fin.good()) {
     std::cerr << "no input file" << std::endl;
