@@ -43,7 +43,6 @@ std::map<char, int> operator_precedence = {
   {operators::UNION, 2}
 };
 
-
 // convert operators to special symbols
 // and add explicit concatenation.
 std::string PreProcessRegex(std::string infix_regex) {
@@ -134,13 +133,11 @@ std::string InfixToPostfix(std::string &infix_regex) {
 
 Node::Node()
     : node_index_(-1),
-      is_accepting_(false),
       visited_(false),
       token_type_(-1) {}
 
 Node::Node(int index)
     : node_index_(index),
-      is_accepting_(false),
       visited_(false),
       token_type_(-1) {}
 
@@ -167,18 +164,19 @@ RegexMatcher::RegexMatcher(std::string infix_regex)
 // what flex does.
 // Receives as parameter the input stream to be used to parse
 RegexMatcher::RegexMatcher(std::istream &is)
-    : eoi_(false), line_no_(1), forward_(nullptr) {
+    : forward_(nullptr), line_no_(1), eoi_(false) {
   std::string filename = "hregex.in";
   std::ifstream fin(filename);
   if (!fin.good()) {
     std::cerr << "no input file" << std::endl;
     throw;
   }
-  
+
+  // read buffer
   is.read(buffer_, BUFF_SIZE);
   forward_ = buffer_;
   buffer_[is.gcount()] = '\0';
-  
+
   Node start_state;
   std::string regex;
   int token_type;
@@ -186,8 +184,14 @@ RegexMatcher::RegexMatcher(std::istream &is)
     if (regex == "whitespace") {
       regex = "(\n|\t|\r| )";
     }
-    std::string postfix_regex = regex::InfixToPostfix(regex);
-    ConstructPostfix(postfix_regex);
+    if (regex == "comments") {
+      CommentRegex();
+    } else if (regex == "unclosed") {
+      UnclosedCommentRegex();
+    } else {
+      std::string postfix_regex = regex::InfixToPostfix(regex);
+      ConstructPostfix(postfix_regex);
+    }
     int initial, accept;
     std::tie(initial, accept) = build_stack_.top();
     states_[accept].token_type_ = token_type;
@@ -196,6 +200,8 @@ RegexMatcher::RegexMatcher(std::istream &is)
     assert(build_stack_.empty());
     start_state.AddEpsilonEdge(initial);
   }
+
+  fin.close();
   start_state_ = static_cast<int>(states_.size());
   states_.push_back(start_state);
 }
@@ -232,6 +238,47 @@ std::tuple<Node, Node> RegexMatcher::GetStartEndNodes() {
   int num_states = static_cast<int>(states_.size());
   return std::make_tuple(Node(num_states), Node(num_states + 1));
 }
+
+// method for special comment regex because why not
+void RegexMatcher::CommentRegex() {
+  AddSymbol('/');
+  AddSymbol('*');
+  AddConcatenation();
+  AddSymbol('*');
+  AddSymbol('/');
+  AddConcatenation();
+
+  int s_a, e_a, s_b, e_b;
+  std::tie(s_b, e_b) = build_stack_.top();
+  build_stack_.pop();
+  std::tie(s_a, e_a) = build_stack_.top();
+  build_stack_.pop();
+
+  Node absorb(static_cast<int>(states_.size()));
+  // wildcard transitions. very ugly.
+  for (char c = 9; c <= 126; c++) {
+    absorb.AddEdge(absorb.node_index_, c);
+  } 
+
+  states_[e_a].AddEpsilonEdge(absorb.node_index_);
+  absorb.AddEpsilonEdge(s_b);
+  states_.push_back(absorb);
+
+  build_stack_.push(std::make_tuple(s_a, e_b));
+}
+
+void RegexMatcher::UnclosedCommentRegex() {
+  AddSymbol('/');
+  AddSymbol('*');
+  AddConcatenation();
+  int s, e;
+  std::tie(s, e) = build_stack_.top();
+  // wildcard transitions. very ugly.
+  for (char c = 9; c <= 126; c++) {
+    states_[e].AddEdge(e, c);
+  }
+}
+
 
 // NFA for a single symbol.
 // creates two states and makes the transition
@@ -415,7 +462,7 @@ int RegexMatcher::NextToken() {
   int final_state = -1; 
   char* lexeme_start = forward_;
   char* lexeme_end = forward_;
-  
+
   for (;; forward_++) {
     char c = *forward_;
     if (c == '\0') {
@@ -434,18 +481,27 @@ int RegexMatcher::NextToken() {
     }
     // pick accepting state
     int chosen = static_cast<int>(states_.size()) + 1;
-    bool at_least_one = false;
+    bool at_least_one = false, non_greedy = false;
     for (int reached : next_state) {
+      //std::cerr << reached << ", ";
       if (accepting_states_.count(reached)) {
         lexeme_end = forward_;
         at_least_one = true;
         chosen = std::min(chosen, reached);
+        // TODO: fix magic number
+        // non greedy match for comments
+        if (states_[reached].token_type_ == -3) {
+          final_state = reached;
+          non_greedy = true;
+          break;
+        }
       }
     }
     final_state = at_least_one ? chosen : final_state;
-
+    if (non_greedy) break;
     std::swap(current_state, next_state);
   }
+
   forward_ = lexeme_end;
   forward_++;
   matched_lexeme_.clear();
@@ -453,13 +509,14 @@ int RegexMatcher::NextToken() {
     matched_lexeme_.push_back(*lexeme_start);
     line_no_ += static_cast<int>(matched_lexeme_.back() == '\n');
   }
+  //std::cerr << matched_lexeme_ << std::endl;
 
   if (*forward_ == '\0') {
     eoi_ = true;
   }
-   
+
   return final_state == -1 ? static_cast<int>(Tokentype::ErrUnknown)
-                           : (states_[final_state].token_type_ == -2
+                           : (states_[final_state].token_type_ <= -2
                                   ? NextToken()
                                   : states_[final_state].token_type_);
 }

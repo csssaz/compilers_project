@@ -274,6 +274,35 @@ TEST_CASE("whitespace") {
     REQUIRE(compiled_regex.Matches(test_string) == false);
 }
 
+
+TEST_CASE("comments") {
+  std::string test_string = "/* 12344.3 asdasd\n\n */";
+  std::stringstream sf(test_string);
+  regex::RegexMatcher r(sf);
+  r.NextToken();
+  REQUIRE(r.NextToken() == static_cast<int>(Tokentype::EOI));
+  REQUIRE(r.GetLexeme() == test_string);
+
+  test_string = "/* Not closed comment";
+  std::stringstream ss(test_string);
+  regex::RegexMatcher r2(ss);
+  REQUIRE(r2.NextToken() == static_cast<int>(Tokentype::ErrUnknown));
+  REQUIRE(r2.GetLexeme() == test_string);
+
+  test_string = "/* /* Not closed\n\n */ var \n/*******/ mate /******/*//* sasdasd//*";
+  std::stringstream ss1(test_string);
+  regex::RegexMatcher r3(ss1);
+  REQUIRE(static_cast<Tokentype>(r3.NextToken()) == Tokentype::Identifier);
+  REQUIRE(r3.GetLexeme() == "var");
+  REQUIRE(static_cast<Tokentype>(r3.NextToken()) == Tokentype::Identifier);
+  REQUIRE(r3.GetLexeme() == "mate");
+  REQUIRE(static_cast<Tokentype>(r3.NextToken()) == Tokentype::OpArtMult);
+  REQUIRE(r3.GetLexeme() == "*");
+  REQUIRE(static_cast<Tokentype>(r3.NextToken()) == Tokentype::OpArtDiv);
+  REQUIRE(r3.GetLexeme() == "/");
+  REQUIRE(static_cast<Tokentype>(r3.NextToken()) == Tokentype::ErrUnknown);
+}
+
 TEST_CASE("input file") {
   std::string test_string =
       "int x = 1345.13\n\treal my_var_name = 13.4E+9 - 13";
@@ -302,6 +331,36 @@ TEST_CASE("input file") {
   }
 
   REQUIRE(r.NextToken() == static_cast<int>(Tokentype::EOI));
+}
+
+TEST_CASE("compare lexers") {
+  std::string test_string =
+      "int my_var_num_ = 3, x = 12;\n"
+      "\treal my_var_real_ = 13.134E-9;\n"
+      "\t\tif (some_weird_expression) {"
+      "\t\t for (int i = 0; i <= 10; i++) {"
+      "\t\t\t int y = (10 + 66) % 88;"
+      "/* all of this is a comment and"
+      "\n\n\n\n should \n\n\t be ignored\n\n*/"
+      "}\n y++;y--;}"
+      "if (1 ==     2    ||3!=0&&      b !=7)      {}"
+      "/* /* Not closed\n\n */ var \n/*******/ mate /******/*//* "
+      "sasdasd//*";
+
+  std::stringstream s_a(test_string);
+  std::stringstream s_b(test_string);
+  SymbolTable a, b;
+  HLexer hand_lexer(s_a, a);
+  FLexer flex_lexer(s_b, b);
+
+  for (Token token_a, token_b; token_a.type != Tokentype::EOI;) {
+    hand_lexer.get_next(token_a);
+    flex_lexer.get_next(token_b);
+    std::cerr << token_a.lexeme << " m8 " << token_b.lexeme << std::endl;
+    REQUIRE(token_a.type == token_b.type);
+    REQUIRE(token_a.line == token_b.line);
+    REQUIRE(token_a.lexeme == token_b.lexeme);
+  }
 }
 
 TEST_CASE("flex parser") {

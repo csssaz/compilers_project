@@ -18,16 +18,14 @@ class Node {
   int node_index_;
   // to use in dfs
   bool visited_;
+  // if its terminal
+  int token_type_;
   std::vector<int> epsilon_edges_;
   // letter -> [node_1, node_2, ...]
   std::map<char, std::vector<int>> edges_;
-  bool is_accepting_;
-  int token_type_;
-  
 
   Node();
   Node(int index);
-
 
   void AddEdge(int to, char symbol);
   void AddEpsilonEdge(int to);
@@ -81,6 +79,10 @@ class RegexMatcher {
   void AddPlusOperator();
   // ?
   void AddOneOrZero();
+
+  // custom constructions for tricky cases
+  void CommentRegex();
+  void UnclosedCommentRegex();
 };
 
 }
