@@ -2,9 +2,11 @@
 %option c++
 %option noyywrap
 %option yylineno
+%x comment
 %{
 #include "token.h"
 %}
+
 ws [ \t\r\n]
 letter_ ([A-Za-z]|"_")
 digit [0-9]
@@ -13,12 +15,15 @@ identifier {letter_}({letter_}|{digit})*
 optional_fraction ("."{digits})?
 optional_exponent ("E"("+"|"-")?{digits})?
 number {digits}{optional_fraction}{optional_exponent}
-comment ("/*"[^*/\/]*"*/")|("//".*\n)
-unclosed_comment "/*"[^*/\/]*
 %%
-{ws}+             /* do nothing */
-{comment}         /* do nothing */
-{unclosed_comment} { return Tokentype::ErrUnknown; }
+"/*"                    { BEGIN(comment); }
+<comment>[^*\n]*        /* eat anything that's not a '*' */
+<comment>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+<comment>\n             /* do nothing, increment line count if needed */
+<comment>"*"+"/"        { BEGIN(INITIAL); }
+<comment><<EOF>>        { BEGIN(INITIAL); return Tokentype::ErrUnknown; }
+
+{ws}+                   /* do nothing */
 
  /* Relational operators */
 "=="            { return Tokentype::OpRelEQ; }
