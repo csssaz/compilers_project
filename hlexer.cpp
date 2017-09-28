@@ -6,47 +6,28 @@
 using namespace std;
 
 HLexer::HLexer(std::istream& is, SymbolTable& symbol_table)
-    : Lexer(is, symbol_table), line_no_(1) {
-  is_.get(c_);
+    : Lexer(is, symbol_table), lexer_(is) {
 }
 
 void HLexer::get_next(Token& token) {
+  
+  int token_no = lexer_.NextToken();
   token.lexeme.clear();
-  token.entry = nullptr;
+  token.type = static_cast<Tokentype>(token_no);
+  token.line = lexer_.line_no();
+  if (token.type != Tokentype::EOI)
+    token.lexeme = lexer_.GetLexeme();
 
-  while (is_.good() && isspace(c_)) {
-    if (c_ == '\n') {
-      ++line_no_;
+  if (token.type == Tokentype::Identifier || token.type == Tokentype::Number) {
+    token.entry = symbol_table_.lookup(token.lexeme);
+    if (token.entry == nullptr) {
+      SymbolTable::Entry entry{token.lexeme};
+      token.entry = symbol_table_.add(entry);
     }
-    is_.get(c_);
-  }
-
-  token.line = line_no_;
-
-  if (!is_.good()) {
-    token.type = Tokentype::EOI;
-    return;
-  }
-
-  switch (c_) {
-    case '{':
-      token.type = Tokentype::ptLBrace;
-      token.lexeme.push_back(c_);
-      is_.get(c_);
-      break;
-    case '}':
-      token.type = Tokentype::ptRBrace;
-      token.lexeme.push_back(c_);
-      is_.get(c_);
-      break;
-    default:
-      token.type = Tokentype::ErrUnknown;
-      token.lexeme.push_back(c_);
-      is_.get(c_);
-      break;
+  } else {
+    token.entry = nullptr;
   }
 }
-
 std::string HLexer::get_name() const { return "handmade"; }
 
 HLexer::~HLexer()
