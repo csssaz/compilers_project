@@ -378,24 +378,28 @@ TEST_CASE("flex parser") {
 }
 
 void test_lexer(std::string test_string, std::vector<std::tuple<std::string, int, Tokentype>> expected_output) {
-  SymbolTable sym;
+  SymbolTable fsym, hsym;
   std::stringstream sf(test_string);
-  Lexer* lexer;
-  lexer = new FLexer(sf, sym);
-  Token token;
+  std::stringstream sh(test_string);
+  FLexer flexer(sf, fsym);
+  HLexer hlexer(sh, hsym);
+  Token ftoken, htoken;
   for (auto test_tuple : expected_output) {
-    lexer->get_next(token);
-    if (token.type != Tokentype::ErrUnknown)
-      REQUIRE(token.lexeme == std::get<0>(test_tuple));
-    REQUIRE(token.line == std::get<1>(test_tuple));
-    REQUIRE(token.type == std::get<2>(test_tuple));
+    flexer.get_next(ftoken);
+    if (ftoken.type != Tokentype::ErrUnknown)
+      REQUIRE(ftoken.lexeme == std::get<0>(test_tuple));
+    REQUIRE(ftoken.line == std::get<1>(test_tuple));
+    REQUIRE(ftoken.type == std::get<2>(test_tuple));
+    hlexer.get_next(htoken);
+    if (htoken.type != Tokentype::ErrUnknown)
+      REQUIRE(htoken.lexeme == std::get<0>(test_tuple));
+    REQUIRE(htoken.line == std::get<1>(test_tuple));
+    REQUIRE(htoken.type == std::get<2>(test_tuple));
   }
-  delete lexer;
 }
 
 TEST_CASE("flex parser comments") {
   std::string test_string = "a = 5; /* Comment */\n\nb = 10.54E4; /* Comment */";
-
   std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
     std::make_tuple("a", 1, Tokentype::Identifier),
     std::make_tuple("=", 1, Tokentype::OpAssign),
@@ -406,16 +410,134 @@ TEST_CASE("flex parser comments") {
     std::make_tuple("10.54E4", 3, Tokentype::Number),
     std::make_tuple(";", 3, Tokentype::ptSemicolon)
   };
-
   test_lexer(test_string, expected_output);
 }
 
 TEST_CASE("flex parser comment err") {
   std::string test_string = "/* Not closed comment";
-
   std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
       std::make_tuple("/* Not closed comment", 1, Tokentype::ErrUnknown)
   };
+  test_lexer(test_string, expected_output);
+}
 
+TEST_CASE("random") {
+  std::string test_string = "int z%? = 5; /**//*_*//*****//**/ \n real[7.8] 411 = 435.5E+5\n /*dfg*/";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("int", 1, Tokentype::kwInt),
+      std::make_tuple("z", 1, Tokentype::Identifier),
+      std::make_tuple("%", 1, Tokentype::OpArtModulus),
+      std::make_tuple("?", 1, Tokentype::ErrUnknown),
+      std::make_tuple("=", 1, Tokentype::OpAssign),
+      std::make_tuple("5", 1, Tokentype::Number),
+      std::make_tuple(";", 1, Tokentype::ptSemicolon),
+      std::make_tuple("real", 2, Tokentype::kwReal),
+      std::make_tuple("[", 2, Tokentype::ptLBracket),
+      std::make_tuple("7.8", 2, Tokentype::Number),
+      std::make_tuple("]", 2, Tokentype::ptRBracket),
+      std::make_tuple("411", 2, Tokentype::Number),
+      std::make_tuple("=", 2, Tokentype::OpAssign),
+      std::make_tuple("435.5E+5", 2, Tokentype::Number)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("random 2") {
+  std::string test_string = "i+++j,k***9878964";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("i", 1, Tokentype::Identifier),
+      std::make_tuple("++", 1, Tokentype::OpArtInc),
+      std::make_tuple("+", 1, Tokentype::OpArtPlus),
+      std::make_tuple("j", 1, Tokentype::Identifier),
+      std::make_tuple(",", 1, Tokentype::ptComma),
+      std::make_tuple("k", 1, Tokentype::Identifier),
+      std::make_tuple("*", 1, Tokentype::OpArtMult),
+      std::make_tuple("*", 1, Tokentype::OpArtMult),
+      std::make_tuple("*", 1, Tokentype::OpArtMult),
+      std::make_tuple("9878964", 1, Tokentype::Number)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("random 3") {
+  std::string test_string = "!}{>====";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("!", 1, Tokentype::OpLogNot),
+      std::make_tuple("}", 1, Tokentype::ptRBrace),
+      std::make_tuple("{", 1, Tokentype::ptLBrace),
+      std::make_tuple(">=", 1, Tokentype::OpRelGTE),
+      std::make_tuple("==", 1, Tokentype::OpRelEQ),
+      std::make_tuple("=", 1, Tokentype::OpAssign)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("splitted number") {
+  std::string test_string = "7E\n-34";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("7", 1, Tokentype::Number),
+      std::make_tuple("E", 1, Tokentype::Identifier),
+      std::make_tuple("-", 2, Tokentype::OpArtMinus),
+      std::make_tuple("34", 2, Tokentype::Number)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("error number") {
+  std::string test_string = "125.45.8E3";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("125.45", 1, Tokentype::Number),
+      std::make_tuple(".", 1, Tokentype::ErrUnknown),
+      std::make_tuple("8E3", 1, Tokentype::Number)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("error number 2") {
+  std::string test_string = "321E";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("321", 1, Tokentype::Number),
+      std::make_tuple("E", 1, Tokentype::Identifier)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("and and and") {
+  std::string test_string = "&&&";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("&&", 1, Tokentype::OpLogAnd),
+      std::make_tuple("&", 1, Tokentype::ErrUnknown)
+  };
+}
+
+TEST_CASE("keywords") {
+  std::string test_string = "class\tstatic void if\telse     for return\nbreak\ncontinue int\nreal";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple("class", 1, Tokentype::kwClass),
+      std::make_tuple("static", 1, Tokentype::kwStatic),
+      std::make_tuple("void", 1, Tokentype::kwVoid),
+      std::make_tuple("if", 1, Tokentype::kwIf),
+      std::make_tuple("else", 1, Tokentype::kwElse),
+      std::make_tuple("for", 1, Tokentype::kwFor),
+      std::make_tuple("return", 1, Tokentype::kwReturn),
+      std::make_tuple("break", 2, Tokentype::kwBreak),
+      std::make_tuple("continue", 3, Tokentype::kwContinue),
+      std::make_tuple("int", 3, Tokentype::kwInt),
+      std::make_tuple("real", 4, Tokentype::kwReal)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("identifier, not keywords") {
+  std::string test_string = "classstaticvoidifelseforreturnbreakcontinueintreal";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {
+      std::make_tuple(test_string, 1, Tokentype::Identifier)
+  };
+  test_lexer(test_string, expected_output);
+}
+
+TEST_CASE("empty input") {
+  std::string test_string = "";
+  std::vector<std::tuple<std::string, int, Tokentype>> expected_output = {};
   test_lexer(test_string, expected_output);
 }
