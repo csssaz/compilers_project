@@ -10,7 +10,8 @@
 #include <vector>
 
 namespace regex {
-const int BUFF_SIZE = 10000;
+// this is far from ideal but should be enough
+const int BUFF_SIZE = 50000;
 // Node used in NFA directed graph.
 class Node {
  public:
@@ -41,6 +42,7 @@ class RegexMatcher {
   RegexMatcher(std::string infix_regex);
   // read regex from file
   RegexMatcher(std::istream& is);
+  ~RegexMatcher();
 
   int NextToken();
   std::string GetLexeme();

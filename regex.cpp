@@ -16,6 +16,14 @@ const char LPAR = 25;
 const char RPAR = 26;
 }
 
+// each accepting token has the token type
+// corresponding to the enum in Token.h
+// since that file is provided, we add special
+// numbers for whitespace, comments and non terminals
+const int NON_TERMINAL_TYPE = -1;
+const int WHITESPACE_STATE_TYPE = -2;
+const int COMMENT_STATE_TYPE = -3;
+
 std::map<char, char> operator_to_hidden = {
   {'*', operators::STAR},
   {'|', operators::UNION},
@@ -134,12 +142,12 @@ std::string InfixToPostfix(std::string &infix_regex) {
 Node::Node()
     : node_index_(-1),
       visited_(false),
-      token_type_(-1) {}
+      token_type_(NON_TERMINAL_TYPE) {}
 
 Node::Node(int index)
     : node_index_(index),
       visited_(false),
-      token_type_(-1) {}
+      token_type_(NON_TERMINAL_TYPE) {}
 
 void Node::AddEdge(int to, char symbol) {
   edges_[symbol].push_back(to);
@@ -168,7 +176,8 @@ RegexMatcher::RegexMatcher(std::istream &is)
   std::string filename = "hregex.in";
   std::ifstream fin(filename);
   if (!fin.good()) {
-    std::cerr << "no input file" << std::endl;
+    std::cerr << "PLEASE MAKE SURE hregex.in IS ON THE WORKING DIRECTORY"
+              << std::endl;
     throw;
   }
 
@@ -176,6 +185,7 @@ RegexMatcher::RegexMatcher(std::istream &is)
   is.read(buffer_, BUFF_SIZE);
   forward_ = buffer_;
   buffer_[is.gcount()] = '\0';
+  eoi_ = (is.gcount() == 0);
 
   Node start_state;
   std::string regex;
@@ -206,6 +216,8 @@ RegexMatcher::RegexMatcher(std::istream &is)
   states_.push_back(start_state);
 }
 
+// no dynamic memory allocation involved
+RegexMatcher::~RegexMatcher() {}
 
 // constructs the NFA to represent the
 // regex passed as parameter, that should be in
@@ -483,14 +495,12 @@ int RegexMatcher::NextToken() {
     int chosen = static_cast<int>(states_.size()) + 1;
     bool at_least_one = false, non_greedy = false;
     for (int reached : next_state) {
-      //std::cerr << reached << ", ";
       if (accepting_states_.count(reached)) {
         lexeme_end = forward_;
         at_least_one = true;
         chosen = std::min(chosen, reached);
-        // TODO: fix magic number
         // non greedy match for comments
-        if (states_[reached].token_type_ == -3) {
+        if (states_[reached].token_type_ == COMMENT_STATE_TYPE) {
           final_state = reached;
           non_greedy = true;
           break;
@@ -509,16 +519,17 @@ int RegexMatcher::NextToken() {
     matched_lexeme_.push_back(*lexeme_start);
     line_no_ += static_cast<int>(matched_lexeme_.back() == '\n');
   }
-  //std::cerr << matched_lexeme_ << std::endl;
 
   if (*forward_ == '\0') {
     eoi_ = true;
   }
 
-  return final_state == -1 ? static_cast<int>(Tokentype::ErrUnknown)
-                           : (states_[final_state].token_type_ <= -2
-                                  ? NextToken()
-                                  : states_[final_state].token_type_);
+  return final_state == -1
+             ? static_cast<int>(Tokentype::ErrUnknown)
+             : (states_[final_state].token_type_ == WHITESPACE_STATE_TYPE ||
+                        states_[final_state].token_type_ == COMMENT_STATE_TYPE
+                    ? NextToken()
+                    : states_[final_state].token_type_);
 }
 
 std::string RegexMatcher::GetLexeme() { return matched_lexeme_; }
