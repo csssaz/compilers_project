@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include "catch.hpp"
 #include "flexer.h"
@@ -391,11 +391,14 @@ void test_lexer(std::string test_string, std::vector<std::tuple<std::string, int
     REQUIRE(ftoken.line == std::get<1>(test_tuple));
     REQUIRE(ftoken.type == std::get<2>(test_tuple));
     hlexer.get_next(htoken);
-    if (htoken.type != Tokentype::ErrUnknown)
-      REQUIRE(htoken.lexeme == std::get<0>(test_tuple));
+    REQUIRE(htoken.lexeme == std::get<0>(test_tuple));
     REQUIRE(htoken.line == std::get<1>(test_tuple));
     REQUIRE(htoken.type == std::get<2>(test_tuple));
   }
+  hlexer.get_next(htoken);
+  REQUIRE(htoken.type == Tokentype::EOI);
+  flexer.get_next(ftoken);
+  REQUIRE(ftoken.type == Tokentype::EOI);
 }
 
 TEST_CASE("flex parser comments") {
