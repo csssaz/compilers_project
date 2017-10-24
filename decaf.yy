@@ -69,11 +69,18 @@ class Parser;
 %token <std::string> Number
 %token <std::string> ErrUnknown
 
+%left OpLogOr
+%left OpLogAnd
+%left OpRelEQ OpRelNEQ
+%left OpRelLT OpRelLTE OpRelGT OpRelGTE
+%left OpArtPlus OpArtMinus
+%left OpArtMult OpArtDiv OpArtModulus
 
 %type <std::list<VariableDeclarationNode*>*> variable_declarations
 %type <ValueType> type
 %type <std::list<VariableExprNode*>*> variable_list
 %type <VariableExprNode*> variable
+%type <ExprNode*> expression
 
 %%
 
@@ -81,8 +88,17 @@ class Parser;
 
 program: kwClass Identifier ptLBrace
              variable_declarations
+             expression
          ptRBrace
-         { driver.set_AST( new ProgramNode( $2, $4, nullptr ) ); }
+         { std::list<ExprNode *> *expr_list = new std::list<ExprNode *>();
+           expr_list->push_back( $5 );
+           MethodCallExprStmNode *stm = new MethodCallExprStmNode("methodName", expr_list);
+           std::list<StmNode *> *stm_list = new std::list<StmNode *>();
+           stm_list->push_back( stm );
+           MethodNode *method = new MethodNode( ValueType::IntVal, "metod", new std::list<ParameterNode *>(), new std::list<VariableDeclarationNode *>(), stm_list );
+           std::list<MethodNode *> *method_decls = new std::list<MethodNode *>();
+           method_decls->push_back( method );
+           driver.set_AST( new ProgramNode( $2, $4, method_decls ) ); }
 
 variable_declarations: variable_declarations type variable_list ptSemicolon
                       { $$ = $1; $$->push_back( new VariableDeclarationNode($2,$3) ); }
@@ -97,6 +113,10 @@ variable_list: variable
                { $$ = $1; $$->push_back( $3 ); }
 
 variable:  Identifier  { $$ = new VariableExprNode($1); }
+
+expression: expression OpLogOr expression
+          | expression OpLogAnd expression
+          | variable { $$ = $1; }
 
 %%
 

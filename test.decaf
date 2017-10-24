@@ -7,6 +7,8 @@ class Program {
     int i,j;
     real x;
 
+    karin
+
     /* Commented out for new, until parser can handle the code.
     static int myFunc( int n ) {
         n = n * 2.1E-3;
