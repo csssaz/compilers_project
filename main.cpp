@@ -1,19 +1,33 @@
-//
-// Compiler project -- main driver for part 1
-//
 #include <iostream>
-#include <fstream>
-#include "hlexer.h"
-#include "flexer.h"
+#include "bparser.h"
+#include "hparser.h"
 
 using namespace std;
 
+void print_indented(const std::string& str, ostream& os) {
+  const int IndentLevel = 3;
+  int indent = 0;
+  for (auto c : str) {
+    if (c == '(') {
+      os << '\n';
+      for (int j = 0; j < indent; ++j) {
+        os << ' ';
+      }
+      indent += IndentLevel;
+    } else if (c == ')') {
+      indent -= IndentLevel;
+    }
+    os << c;
+  }
+  os << std::endl;
+}
+
 int main(int argc, char* argv[]) {
-  // Process command-line arguments, if any.
-  // Usage:  program [ option [ filename ] ]  (option -h or -f)
-  bool use_flex = false;
-  if (argc >= 2 && string(argv[1]) == "-f") {
-    use_flex = true;
+  // Process the command-line arguments, if any.
+  // Usage: program [ option [ filename ] ]  (option -h or -b)
+  bool use_bison = false;
+  if (argc >= 2 && string(argv[1]) == "-b") {
+    use_bison = true;
   }
   string filename("test.decaf");
   if (argc >= 3) {
@@ -21,40 +35,33 @@ int main(int argc, char* argv[]) {
   }
 
   // Open file with Decaf program, exit if error opening file.
-  ifstream fis(filename);
-  if (!fis.good()) {
+  FILE* file = fopen(filename.c_str(), "r");
+  if (file == nullptr) {
     cerr << "Could not open input file '" << filename << "'." << endl;
     return -1;
   }
 
-  // Instantiate the right lexer.
-  SymbolTable sym;
-  Lexer* lexer;
-  if (use_flex) {
-    lexer = new FLexer(fis, sym);
+  // Instantiate the right parser.
+  Parser* parser;
+  if (use_bison) {
+    parser =
+        new BParser(file, false, false);  // Change flags to true for debugging.
   } else {
-    lexer = new HLexer(fis, sym);
+    parser = new HParser(file, false, false);
   }
 
-  // Output tokens.
-  cout << "Using lexical analyzer: " << lexer->get_name() << endl;
-  Token token;
-  lexer->get_next(token);
-  while (token.type != Tokentype::EOI) {
-    cout << '(' << token.type << ',' << token.lexeme << ',' << token.line << ','
-         << ((token.entry == nullptr) ? "null" : "{" + token.entry->name + "}")
-         << ')' << endl;
-    lexer->get_next(token);
-  }
-
-  // Output the symbol table in lexicographical order.
-  cout << "\nSymbol table (" << sym.size() << "):" << endl;
-  list<SymbolTable::Entry> L = sym.entries();
-  for (auto elem : L) {
-    cout << elem.name << endl;
+  // Parse and output the generated abstract syntax tree.
+  cout << "====> PARSING FILE " << filename << " USING PARSER "
+       << parser->get_name() << endl;
+  parser->parse();
+  cout << "====> AST" << endl;
+  Node* ast = parser->get_AST();
+  if (ast != nullptr) {
+    print_indented(ast->str(), std::cout);
   }
 
   // Clean up and return.
-  delete lexer;
+  fclose(file);
+  delete parser;
   return 0;
 }

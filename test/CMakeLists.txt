@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(${Compilers_SOURCE_DIR})
 
-set(TEST_SRC  ${Compilers_SOURCE_DIR}/hlexer.cpp ${Compilers_SOURCE_DIR}/regex.cpp ${Compilers_SOURCE_DIR}/flexer.h ${Compilers_SOURCE_DIR}/flexer.cpp)
+set(TEST_SRC  ${Compilers_SOURCE_DIR}/lexer/hlexer.cpp ${Compilers_SOURCE_DIR}/lexer/regex.cpp ${Compilers_SOURCE_DIR}/lexer/flexer.h ${Compilers_SOURCE_DIR}/lexer/flexer.cpp)
 set(TEST_FILES testmain.cpp)
 message(${TEST_SRC})
 add_executable(my_test ${TEST_FILES} ${TEST_SRC})

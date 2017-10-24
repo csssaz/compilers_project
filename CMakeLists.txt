@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.8)
 project(Compilers)
 
-add_subdirectory(test)
+add_subdirectory(lexer)
+
+find_package(FLEX)
+FLEX_TARGET(DecafLexer decaf.l ${CMAKE_CURRENT_BINARY_DIR}/../lexer_decaf.cpp)
+
+find_package(BISON)
+BISON_TARGET(DecafParser decaf.yy ${CMAKE_CURRENT_BINARY_DIR}/../parser_decaf.cpp)
 
 set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include -Wall -Wextra -ansi -pedantic")
-find_package(FLEX)
-FLEX_TARGET(Flexer flexer.l ${CMAKE_CURRENT_BINARY_DIR}/../flexer.cpp)
-
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -Wall -Wno-conversion -Wno-deprecated-register")
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/hregex.in ${CMAKE_CURRENT_BINARY_DIR}/hregex.in COPYONLY)
 
-set(SOURCE_FILES main.cpp hlexer.cpp ${FLEX_Flexer_OUTPUTS} hlexer.h flexer.h lexer.h symbol_table.h token.h regex.cpp)
-add_executable(Compilers ${SOURCE_FILES})
-
+set(SOURCE_FILES ${BISON_DecafParser_OUTPUTS} ${FLEX_DecafLexer_OUTPUTS} main.cpp ast.h parser.h hparser.cpp hparser.h bparser.h)
+add_executable(DecafParser ${SOURCE_FILES})
