@@ -114,8 +114,19 @@ variable_list: variable
 
 variable:  Identifier  { $$ = new VariableExprNode($1); }
 
-expression: expression OpLogOr expression
-          | expression OpLogAnd expression
+expression: expression OpLogOr expression { $$ = new OrExprNode($1, $3); }
+          | expression OpLogAnd expression { $$ = new AndExprNode($1, $3); }
+          | expression OpRelEQ expression { $$ = new EqExprNode($1, $3); }
+          | expression OpRelNEQ expression { $$ = new NeqExprNode($1, $3); }
+          | expression OpRelLT expression { $$ = new LtExprNode($1, $3); }
+          | expression OpRelLTE expression { $$ = new LteExprNode($1, $3); }
+          | expression OpRelGT expression { $$ = new GtExprNode($1, $3); }
+          | expression OpRelGTE expression { $$ = new GteExprNode($1, $3); }
+          | expression OpArtPlus expression { $$ = new PlusExprNode($1, $3); }
+          | expression OpArtMinus expression { $$ = new MinusExprNode($1, $3); }
+          | expression OpArtMult expression { $$ = new MultiplyExprNode($1, $3); }
+          | expression OpArtDiv expression { $$ = new DivideExprNode($1, $3); }
+          | expression OpArtModulus expression { $$ = new ModulusExprNode($1, $3); }
           | variable { $$ = $1; }
 
 %%
