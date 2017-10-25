@@ -5,7 +5,7 @@ target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
 set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include")
 set(CMAKE_CXX_STANDARD 11)
 
-include_directories(${Compilers_SOURCE_DIR})
+include_directories(${Compilers_SOURCE_DIR}/lexer)
 
 set(TEST_SRC  ${Compilers_SOURCE_DIR}/lexer/hlexer.cpp ${Compilers_SOURCE_DIR}/lexer/regex.cpp ${Compilers_SOURCE_DIR}/lexer/flexer.h ${Compilers_SOURCE_DIR}/lexer/flexer.cpp)
 set(TEST_FILES testmain.cpp)
