@@ -7,6 +7,9 @@ class Program {
     int i,j;
     real x;
 
+    b + 6,
+    9887 - 7789,
+    name(144 != I44, 5 * - 9 - 8 / 7 + +65),
     k && j || !no + -yes || a - 5 - !(r == t != the) <= !!g * 557 > -foo >= bla / +ddd % z < a
 
     /* Commented out for new, until parser can handle the code.

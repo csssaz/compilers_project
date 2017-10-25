@@ -81,6 +81,8 @@ class Parser;
 %type <ValueType> type
 %type <std::list<VariableExprNode*>*> variable_list
 %type <VariableExprNode*> variable
+%type <std::list<ExprNode *>*> expr_list
+%type <std::list<ExprNode *>*> more_expr
 %type <ExprNode*> expression
 
 %%
@@ -89,10 +91,9 @@ class Parser;
 
 program: kwClass Identifier ptLBrace
              variable_declarations
-             expression
+             expr_list
          ptRBrace
-         { std::list<ExprNode *> *expr_list = new std::list<ExprNode *>();
-           expr_list->push_back( $5 );
+         { std::list<ExprNode *> *expr_list = $5;
            MethodCallExprStmNode *stm = new MethodCallExprStmNode("methodName", expr_list);
            std::list<StmNode *> *stm_list = new std::list<StmNode *>();
            stm_list->push_back( stm );
@@ -115,6 +116,12 @@ variable_list: variable
 
 variable:  Identifier  { $$ = new VariableExprNode($1); }
 
+expr_list: expression more_expr { $$ = $2; $$->push_front($1); }
+         | { $$ = new std::list<ExprNode *>(); }
+
+more_expr: ptComma expression more_expr { $$ = $3; $$->push_front($2); }
+         | { $$ = new std::list<ExprNode *>(); }
+
 expression: expression OpLogOr expression { $$ = new OrExprNode($1, $3); }
           | expression OpLogAnd expression { $$ = new AndExprNode($1, $3); }
           | expression OpRelEQ expression { $$ = new EqExprNode($1, $3); }
@@ -132,6 +139,7 @@ expression: expression OpLogOr expression { $$ = new OrExprNode($1, $3); }
           | OpArtMinus expression %prec UMINUS { $$ = new MinusExprNode($2); }
           | OpLogNot expression { $$ = new NotExprNode($2); }
           | variable { $$ = $1; }
+          | Identifier ptLParen expr_list ptRParen { $$ = new MethodCallExprStmNode($1, $3); }
           | Number { $$ = new NumberExprNode($1); }
           | ptLParen expression ptRParen { $$ = $2; }
 
