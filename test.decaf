@@ -7,7 +7,7 @@ class Program {
     int i,j;
     real x;
 
-    k && j || no + yes || a - g - r == t != the <= g * w > foo >= bla / ddd % z < a
+    k && j || !no + -yes || a - 5 - !(r == t != the) <= !!g * 557 > -foo >= bla / +ddd % z < a
 
     /* Commented out for new, until parser can handle the code.
     static int myFunc( int n ) {

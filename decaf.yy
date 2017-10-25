@@ -75,6 +75,7 @@ class Parser;
 %left OpRelLT OpRelLTE OpRelGT OpRelGTE
 %left OpArtPlus OpArtMinus
 %left OpArtMult OpArtDiv OpArtModulus
+%right OpLogNot UMINUS UPLUS
 
 %type <std::list<VariableDeclarationNode*>*> variable_declarations
 %type <ValueType> type
@@ -127,7 +128,12 @@ expression: expression OpLogOr expression { $$ = new OrExprNode($1, $3); }
           | expression OpArtMult expression { $$ = new MultiplyExprNode($1, $3); }
           | expression OpArtDiv expression { $$ = new DivideExprNode($1, $3); }
           | expression OpArtModulus expression { $$ = new ModulusExprNode($1, $3); }
+          | OpArtPlus expression %prec UPLUS { $$ = new PlusExprNode($2); }
+          | OpArtMinus expression %prec UMINUS { $$ = new MinusExprNode($2); }
+          | OpLogNot expression { $$ = new NotExprNode($2); }
           | variable { $$ = $1; }
+          | Number { $$ = new NumberExprNode($1); }
+          | ptLParen expression ptRParen { $$ = $2; }
 
 %%
 
