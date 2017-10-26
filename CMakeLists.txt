@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(Compilers)
 
 add_subdirectory(lexer)
+add_subdirectory(test)
 
 find_package(FLEX)
 FLEX_TARGET(DecafLexer decaf.l ${CMAKE_CURRENT_BINARY_DIR}/../lexer_decaf.cpp)
