@@ -114,6 +114,18 @@ class HParser : public Parser {
   VariableExprNode* variable();
   ValueType type();
 
+  std::list<MethodNode*>* method_declarations();
+  MethodNode* method_declaration();
+  ValueType method_return_type();
+
+  std::list<ParameterNode*>* parameters();
+  std::list<ParameterNode*>* parameter_list();
+
+  std::list<StmNode*>* statement_list();
+  StmNode* statement();
+  StmNode* id_start_stm();
+
+  BlockStmNode* statement_block();
   std::list<ExprNode*>* expr_list();
 
   ExprNode* expr_or();

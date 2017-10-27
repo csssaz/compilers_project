@@ -14,19 +14,10 @@ ProgramNode* HParser::program() {
   match(decaf::token_type::Identifier);
   match(decaf::token_type::ptLBrace);
   auto list_vdn = variable_declarations();
-  auto exp = expr_list();
-  MethodCallExprStmNode *stm =
-      new MethodCallExprStmNode("methodName", exp);
-  std::list<StmNode *> *stm_list = new std::list<StmNode *>();
-  stm_list->push_back(stm);
-  MethodNode *method = new MethodNode(
-      ValueType::IntVal, "metod", new std::list<ParameterNode *>(),
-      new std::list<VariableDeclarationNode *>(), stm_list);
-  std::list<MethodNode *> *method_decls = new std::list<MethodNode *>();
-  method_decls->push_back(method);
+  auto list_mdn = method_declarations();
   match(decaf::token_type::ptRBrace);
   match(decaf::token_type::EOI);
-  return new ProgramNode(name, list_vdn, method_decls);
+  return new ProgramNode(name, list_vdn, list_mdn);
 }
 
 list<VariableDeclarationNode*>* HParser::variable_declarations() {
@@ -69,6 +60,178 @@ VariableExprNode* HParser::variable() {
   auto node = new VariableExprNode(token_.lexeme);
   match(decaf::token_type::Identifier);
   return node;
+}
+
+list<MethodNode*>* HParser::method_declarations() {
+  list<MethodNode*>* list_mdn = new list<MethodNode*>();
+  list_mdn->push_back(method_declaration());
+  while(token_.type == decaf::token_type::kwStatic) {
+    list_mdn->push_back(method_declaration());
+  }
+  return list_mdn;
+}
+
+MethodNode* HParser::method_declaration() {
+  match(decaf::token_type::kwStatic);
+  auto type = method_return_type();
+  string method_name = token_.lexeme;
+  match(decaf::token_type::Identifier);
+  match(decaf::token_type::ptLParen);
+  auto params = parameters();
+  match(decaf::token_type::ptRParen);
+  match(decaf::token_type::ptLBrace);
+  auto list_vdn = variable_declarations();
+  auto list_stm = statement_list();
+  match(decaf::token_type::ptRBrace);
+  return new MethodNode(type, method_name, params, list_vdn, list_stm);
+}
+
+ValueType HParser::method_return_type() {
+  if (token_.type == decaf::token_type::kwVoid) {
+    match(decaf::token_type::kwVoid);
+    return ValueType::VoidVal;
+  }
+  return type();
+}
+
+list<ParameterNode*>* HParser::parameters() {
+  if (token_.type == decaf::token_type::kwInt ||
+      token_.type == decaf::token_type::kwReal) {
+    return parameter_list();
+  }
+  return new list<ParameterNode*>();
+}
+
+list<ParameterNode*>* HParser::parameter_list() {
+  auto param_list = new list<ParameterNode*>();
+  param_list->push_back(new ParameterNode(type(), variable()));
+  while (token_.type == decaf::token_type::ptComma) {
+    match(decaf::token_type::ptComma);
+    param_list->push_back(new ParameterNode(type(), variable()));
+  }
+  return param_list;
+}
+
+list<StmNode*>* HParser::statement_list() {
+  auto stm_list = new list<StmNode*>();
+  while (token_.type == decaf::token_type::kwIf ||
+      token_.type == decaf::token_type::kwFor ||
+      token_.type == decaf::token_type::kwReturn ||
+      token_.type == decaf::token_type::kwBreak ||
+      token_.type == decaf::token_type::kwContinue ||
+      token_.type == decaf::token_type::ptLBrace ||
+      token_.type == decaf::token_type::Identifier) {
+    stm_list->push_back(statement());
+  }
+  return stm_list;
+}
+
+StmNode* HParser::statement() {
+  switch (token_.type) {
+    case (decaf::token_type::kwIf): {
+      match(decaf::token_type::kwIf);
+      match(decaf::token_type::ptLParen);
+      ExprNode *expr = expr_or();
+      match(decaf::token_type::ptRParen);
+      BlockStmNode *stm_if = statement_block();
+      BlockStmNode *stm_else = nullptr;
+      // optional_else added here:
+      if (token_.type == decaf::token_type::kwElse) {
+        match(decaf::token_type::kwElse);
+        stm_else = statement_block();
+      }
+      return new IfStmNode(expr, stm_if, stm_else);
+    }
+    case (decaf::token_type::kwFor): {
+      match(decaf::token_type::kwFor);
+      match(decaf::token_type::ptLParen);
+      VariableExprNode *var_new = variable();
+      match(decaf::token_type::OpAssign);
+      ExprNode *value = expr_or();
+      match(decaf::token_type::ptSemicolon);
+      ExprNode *condition = expr_or();
+      match(decaf::token_type::ptSemicolon);
+      VariableExprNode *var2 = variable();
+      IncrDecrStmNode *incr_decr;
+      if (token_.type == decaf::token_type::OpArtInc) {
+        match(decaf::token_type::OpArtInc);
+        incr_decr = new IncrStmNode(var2);
+      } else if (token_.type == decaf::token_type::OpArtDec) {
+        match(decaf::token_type::OpArtDec);
+        incr_decr = new DecrStmNode(var2);
+      } else {
+        error(decaf::token_type::OpArtInc);
+      }
+      match(decaf::token_type::ptRParen);
+      BlockStmNode *block = statement_block();
+      return new ForStmNode(new AssignStmNode(var_new, value), condition, incr_decr, block);
+    }
+    case (decaf::token_type::kwReturn): {
+      match(decaf::token_type::kwReturn);
+      // optional_expr handeled here
+      ExprNode *opt_expr;
+      if (token_.type != decaf::token_type::ptSemicolon) {
+        opt_expr = expr_or();
+      }
+      match(decaf::token_type::ptSemicolon);
+      return new ReturnStmNode(opt_expr);
+    }
+    case (decaf::token_type::kwBreak): {
+      match(decaf::token_type::kwBreak);
+      match(decaf::token_type::ptSemicolon);
+      return new BreakStmNode();
+    }
+    case (decaf::token_type::kwContinue): {
+      match(decaf::token_type::kwContinue);
+      match(decaf::token_type::ptSemicolon);
+      return new ContinueStmNode();
+    }
+    case (decaf::token_type::ptLBrace): {
+      return statement_block();
+    }
+    case (decaf::token_type::Identifier): {
+      return id_start_stm();
+    }
+  }
+  return new ReturnStmNode(nullptr);
+}
+
+StmNode* HParser::id_start_stm() {
+  string id = token_.lexeme;
+  match(decaf::token_type::Identifier);
+  switch (token_.type) {
+    case decaf::token_type::ptLParen: {
+      match(decaf::token_type::ptLParen);
+      auto ex_list = expr_list();
+      match(decaf::token_type::ptRParen);
+      match(decaf::token_type::ptSemicolon);
+      return new MethodCallExprStmNode(id, ex_list);
+    }
+    case decaf::token_type::OpAssign: {
+      match(decaf::token_type::OpAssign);
+      auto expr = expr_or();
+      match(decaf::token_type::ptSemicolon);
+      return new AssignStmNode(new VariableExprNode(id), expr);
+    }
+    case decaf::token_type::OpArtInc: {
+      match(decaf::token_type::OpArtInc);
+      match(decaf::token_type::ptSemicolon);
+      return new IncrStmNode(new VariableExprNode(id));
+    }
+    case decaf::token_type::OpArtDec: {
+      match(decaf::token_type::OpArtDec);
+      match(decaf::token_type::ptSemicolon);
+      return new DecrStmNode(new VariableExprNode(id));
+    }
+  }
+}
+
+
+BlockStmNode* HParser::statement_block() {
+  match(decaf::token_type::ptLBrace);
+  auto stm_list = statement_list();
+  match(decaf::token_type::ptRBrace);
+  return new BlockStmNode(stm_list);
 }
 
 // expr_list and more_expressions are in the same method.
