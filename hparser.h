@@ -129,25 +129,25 @@ class HParser : public Parser {
   std::list<ExprNode*>* expr_list();
 
   ExprNode* expr_or();
-  ExprNode* expr_or_(ExprNode *lhs);
+  ExprNode* expr_or_(ExprNode* lhs);
 
   ExprNode* expr_and();
-  ExprNode* expr_and_(ExprNode *lhs);
+  ExprNode* expr_and_(ExprNode* lhs);
 
   ExprNode* expr_eq();
-  ExprNode* expr_eq_(ExprNode *lhs);
+  ExprNode* expr_eq_(ExprNode* lhs);
 
   ExprNode* expr_rel();
-  ExprNode* expr_rel_(ExprNode *lhs);
+  ExprNode* expr_rel_(ExprNode* lhs);
 
   ExprNode* expr_add();
-  ExprNode* expr_add_(ExprNode *lhs);
+  ExprNode* expr_add_(ExprNode* lhs);
 
   ExprNode* expr_mult();
-  ExprNode* expr_mult_(ExprNode *lhs);
+  ExprNode* expr_mult_(ExprNode* lhs);
 
   ExprNode* expr_unary();
 
   ExprNode* factor();
 };
-#endif //DECAFPARSER_HPARSER_H
+#endif  // DECAFPARSER_HPARSER_H
