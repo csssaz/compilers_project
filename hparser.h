@@ -113,5 +113,41 @@ class HParser : public Parser {
   std::list<VariableExprNode*>* variable_list();
   VariableExprNode* variable();
   ValueType type();
+
+  std::list<MethodNode*>* method_declarations();
+  MethodNode* method_declaration();
+  ValueType method_return_type();
+
+  std::list<ParameterNode*>* parameters();
+  std::list<ParameterNode*>* parameter_list();
+
+  std::list<StmNode*>* statement_list();
+  StmNode* statement();
+  StmNode* id_start_stm();
+
+  BlockStmNode* statement_block();
+  std::list<ExprNode*>* expr_list();
+
+  ExprNode* expr_or();
+  ExprNode* expr_or_(ExprNode* lhs);
+
+  ExprNode* expr_and();
+  ExprNode* expr_and_(ExprNode* lhs);
+
+  ExprNode* expr_eq();
+  ExprNode* expr_eq_(ExprNode* lhs);
+
+  ExprNode* expr_rel();
+  ExprNode* expr_rel_(ExprNode* lhs);
+
+  ExprNode* expr_add();
+  ExprNode* expr_add_(ExprNode* lhs);
+
+  ExprNode* expr_mult();
+  ExprNode* expr_mult_(ExprNode* lhs);
+
+  ExprNode* expr_unary();
+
+  ExprNode* factor();
 };
-#endif //DECAFPARSER_HPARSER_H
+#endif  // DECAFPARSER_HPARSER_H
