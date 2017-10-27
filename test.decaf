@@ -7,12 +7,42 @@ class Program {
     int i,j;
     real x;
 
+    static void foo(int var1, real var2) {
+        real k, j;
+        int a, b, c, d;
+        real v;
+    }
+
+    static int empty() {
+
+    }
+
+    static real bar(int not_void) {
+        if (a > 5) {
+            e = 9.8;
+            l3 = k + j;
+            hej = you;
+        }
+        break;
+    }
+
+    static int cont() {
+        for (i = 10; i > 0; i--) {
+            continue;
+            {
+                i++;
+            }
+        }
+    }
+
+    /*
     b + 6,
     9887 - 7789,
     name(144 != I44, 5 * - 9 - 8 / 7 + +65),
     k && j || !no + -yes || a - 5 - !(r == t != the) <= !!g * 557 > -foo >= bla / +ddd % z < a
+    */
 
-    /* Commented out for new, until parser can handle the code.
+    /* Commented out for new, until parser can handle the code. */
     static int myFunc( int n ) {
         n = n * 2.1E-3;
         return n;
@@ -35,5 +65,4 @@ class Program {
             myFunc( n );
        }
     }
-    */
 }
