@@ -241,6 +241,14 @@ BlockStmNode* HParser::statement_block() {
 // expr_list and more_expressions are in the same method.
 list<ExprNode*>* HParser::expr_list() {
   list<ExprNode*>* expr_list = new list<ExprNode*>();
+  if (token_.type != decaf::token_type::Number &&
+      token_.type != decaf::token_type::ptLParen &&
+      token_.type != decaf::token_type::Identifier &&
+      token_.type != decaf::token_type::OpArtPlus &&
+      token_.type != decaf::token_type::OpArtMinus &&
+      token_.type != decaf::token_type::OpLogNot) {
+    return expr_list;
+  }
   expr_list->push_front(expr_or());
   while (token_.type == decaf::token_type::ptComma) {
     match(decaf::token_type::ptComma);
