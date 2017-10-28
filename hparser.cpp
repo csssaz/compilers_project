@@ -194,7 +194,7 @@ StmNode* HParser::statement() {
       return id_start_stm();
     }
     default:
-      break;
+      error(decaf::token_type::Identifier);
   }
   return new ReturnStmNode(nullptr);
 }
@@ -227,7 +227,7 @@ StmNode* HParser::id_start_stm() {
       return new DecrStmNode(new VariableExprNode(id));
     }
     default:
-      break;
+      error(decaf::token_type::ptLParen);
   }
 }
 
