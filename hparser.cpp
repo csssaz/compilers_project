@@ -196,7 +196,7 @@ StmNode* HParser::statement() {
     default:
       error(decaf::token_type::Identifier);
   }
-  return new ReturnStmNode(nullptr);
+  return nullptr;
 }
 
 StmNode* HParser::id_start_stm() {
@@ -229,6 +229,7 @@ StmNode* HParser::id_start_stm() {
     default:
       error(decaf::token_type::ptLParen);
   }
+  return nullptr;
 }
 
 BlockStmNode* HParser::statement_block() {

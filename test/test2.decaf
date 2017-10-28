@@ -1,0 +1,31 @@
+class Program {
+  int a, b;
+
+  static real random() {
+    return 0.5;
+  }
+
+  static real pi() {
+    int i, num_iter;
+    real x, y, inside;
+    num_iter = 100000;
+    for (i = 0; i < num_iter; i++) {
+      x = random();
+      y = random();
+      if (x*x + y*y <= 1.0) {
+        inside++;
+      }
+    }
+    return inside * num_iter / 4.0;
+  }
+
+
+  static void main() {
+    int i, bla;
+    real p;
+    p = pi();
+    for (i = 5; i < 20 && 2 > 1; i++) {
+      bla = bla +  i - 1213 * 1213 / 121 + 940 % 1212 + 999;
+    }
+  }
+}
