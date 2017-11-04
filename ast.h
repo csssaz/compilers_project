@@ -682,7 +682,8 @@ class BreakStmNode : public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    std::string label = tac.label_name("for_end", data.for_label_no.top());
+    tac.append(TAC::InstrType::GOTO, label);
   }
 };
 
@@ -695,7 +696,8 @@ class ContinueStmNode : public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    std::string label = tac.label_name("for_incr", data.for_label_no.top());
+    tac.append(TAC::InstrType::GOTO, label);
   }
 };
 
