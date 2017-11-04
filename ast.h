@@ -107,7 +107,31 @@ class AndExprNode : public ExprNode {
     return std::string("(&& ") + tostr(lhs_) + ' ' + tostr(rhs_) + ')';
   }
 
-  virtual void icg(Data& data, TAC& tac) const override {}
+  virtual void icg(Data& data, TAC& tac) const override {
+    std::string result_var = tac.tmp_variable_name(data.variable_no++);
+    std::string lab_and_false = tac.label_name("and_false", data.label_no);
+    std::string lab_and_end = tac.label_name("and_end", data.label_no);
+    data.label_no++;
+
+    tac.append(TAC::InstrType::VAR, result_var);
+
+    lhs_->icg(data, tac);
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_and_false);
+
+    rhs_->icg(data, tac);
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_and_false);
+
+    tac.append(TAC::InstrType::ASSIGN, "1", result_var);
+    tac.append(TAC::InstrType::GOTO, lab_and_end);
+
+    tac.label_next_instr(lab_and_false);
+    tac.append(TAC::InstrType::ASSIGN, "0", result_var);
+
+    tac.label_next_instr(lab_and_end);
+
+    data.expr_return_var = result_var;
+    data.expr_return_type = ValueType::IntVal;
+  }
 
  protected:
   ExprNode *lhs_, *rhs_;
@@ -750,7 +774,27 @@ class ForStmNode : public StmNode {
   };
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    std::string lab_for_expr = tac.label_name("for_expr", data.label_no);
+    std::string lab_for_incr = tac.label_name("for_incr", data.label_no);
+    std::string lab_for_end = tac.label_name("for_end", data.label_no);
+    data.for_label_no.push(data.label_no);
+
+    data.label_no++;
+
+    assign_->icg(data, tac);
+
+    tac.label_next_instr(lab_for_expr);
+    expr_->icg(data, tac);
+
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_for_end);
+    stms_->icg(data, tac);
+
+    tac.label_next_instr(lab_for_incr);
+    inc_dec_->icg(data, tac);
+    tac.append(TAC::InstrType::GOTO, lab_for_expr);
+
+    tac.label_next_instr(lab_for_end);
+    data.for_label_no.pop();
   }
 
  protected:
