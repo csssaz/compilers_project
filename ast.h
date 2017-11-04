@@ -107,9 +107,7 @@ class AndExprNode : public ExprNode {
     return std::string("(&& ") + tostr(lhs_) + ' ' + tostr(rhs_) + ')';
   }
 
-  virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
-  }
+  virtual void icg(Data& data, TAC& tac) const override {}
 
  protected:
   ExprNode *lhs_, *rhs_;
@@ -124,7 +122,29 @@ class OrExprNode : public ExprNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    std::string result_var = tac.tmp_variable_name(data.variable_no++);
+    std::string lab_or_true = tac.label_name("or_true", data.label_no);
+    std::string lab_or_end = tac.label_name("or_end", data.label_no);
+    data.label_no++;
+
+    tac.append(TAC::InstrType::VAR, result_var);
+
+    lhs_->icg(data, tac);
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_or_true);
+
+    rhs_->icg(data, tac);
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_or_true);
+
+    tac.append(TAC::InstrType::ASSIGN, "0", result_var);
+    tac.append(TAC::InstrType::GOTO, lab_or_end);
+
+    tac.label_next_instr(lab_or_true);
+    tac.append(TAC::InstrType::ASSIGN, "1", result_var);
+
+    tac.label_next_instr(lab_or_end);
+
+    data.expr_return_var = result_var;
+    data.expr_return_type = ValueType::IntVal;
   }
 
  protected:
@@ -278,8 +298,16 @@ class ArithmeticExprNode : public ExprNode {
       : instr_type_(instr_type), lhs_(lhs), rhs_(rhs) {}
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
-    data.expr_return_var = "?";
+    lhs_->icg(data, tac);
+    std::string lhs_var = data.expr_return_var;
+    rhs_->icg(data, tac);
+    std::string rhs_var = data.expr_return_var;
+
+    std::string result_var = tac.tmp_variable_name(data.variable_no++);
+    tac.append(TAC::InstrType::VAR, result_var);
+
+    tac.append(instr_type_, lhs_var, rhs_var, result_var);
+    data.expr_return_var = result_var;
   }
 
  protected:
@@ -485,7 +513,16 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    std::vector<std::string> expr_var_names;
+    for (auto expr : *expr_list_) {
+      expr->icg(data, tac);
+      expr_var_names.push_back(data.expr_return_var);
+    }
+    for (auto expr_var : expr_var_names) {
+      tac.append(TAC::InstrType::APARAM, expr_var);
+    }
+    tac.append(TAC::InstrType::CALL, id_);
+    data.expr_return_var = id_;
   }
 
  protected:
@@ -560,7 +597,10 @@ class DecrStmNode : public IncrDecrStmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    var_->icg(data, tac);
+    tac.append(TAC::InstrType::SUB, data.expr_return_var,
+               data.expr_return_type == ValueType::RealVal ? "1.0" : "1",
+               data.expr_return_var);
   }
 
  protected:
@@ -675,7 +715,22 @@ class IfStmNode : public StmNode {
   };
 
   virtual void icg(Data& data, TAC& tac) const override {
-    // To do ...
+    expr_->icg(data, tac);
+    std::string lab_true_block = tac.label_name("true_block", data.label_no);
+    std::string lab_if_end = tac.label_name("if_end", data.label_no);
+    data.label_no++;
+
+    expr_->icg(data, tac);
+    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_true_block);
+    if (stm_else_ != nullptr) {
+      stm_else_->icg(data, tac);
+    }
+    tac.append(TAC::InstrType::GOTO, lab_if_end);
+
+    tac.label_next_instr(lab_true_block);
+    stm_if_->icg(data, tac);
+
+    tac.label_next_instr(lab_if_end);
   }
 
  protected:

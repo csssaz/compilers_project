@@ -1,5 +1,5 @@
 class Test {
-    int i, j;
+    int i, j, a;
     real x;
 
     static void main() {
@@ -8,5 +8,34 @@ class Test {
         j = 3;
         k = i * j;
         writeln(k);
+        if (i > j) {
+          writeln(1);
+        }
+        else {
+          x = 5.0;
+          x--;
+          a = 0 || i < j;
+          writeln(a);
+          a = i > j || !(i < j);
+          writeln(a);
+          if (i < j) {
+            writeln(1212);
+          }
+          if (i > j) {
+            writeln(-1);
+          }
+          else {
+            writeln(1111);
+          }
+          writeln(666);
+        }
+        j--;
+        writeln(j);
+        j--;
+        writeln(j);
+        x--;
+        writeln(x);
+        x--;
+        writeln(x);
     }
 }
