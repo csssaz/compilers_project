@@ -1,5 +1,5 @@
 class Test {
-    int i, j, oe;
+    int i, j, a;
     real x;
 
     static void main() {
@@ -12,6 +12,10 @@ class Test {
           writeln(1);
         }
         else {
+          a = 0 || i < j;
+          writeln(a);
+          a = i > j || !(i < j);
+          writeln(a);
           if (i < j) {
             writeln(1212);
           }
