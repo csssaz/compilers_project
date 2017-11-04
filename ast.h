@@ -130,10 +130,10 @@ class OrExprNode : public ExprNode {
     tac.append(TAC::InstrType::VAR, result_var);
 
     lhs_->icg(data, tac);
-    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_or_true);
+    tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_or_true);
 
     rhs_->icg(data, tac);
-    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_or_true);
+    tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_or_true);
 
     tac.append(TAC::InstrType::ASSIGN, "0", result_var);
     tac.append(TAC::InstrType::GOTO, lab_or_end);
@@ -715,13 +715,12 @@ class IfStmNode : public StmNode {
   };
 
   virtual void icg(Data& data, TAC& tac) const override {
-    expr_->icg(data, tac);
     std::string lab_true_block = tac.label_name("true_block", data.label_no);
     std::string lab_if_end = tac.label_name("if_end", data.label_no);
     data.label_no++;
 
     expr_->icg(data, tac);
-    tac.append(TAC::InstrType::EQ, data.expr_return_var, "1", lab_true_block);
+    tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_true_block);
     if (stm_else_ != nullptr) {
       stm_else_->icg(data, tac);
     }
