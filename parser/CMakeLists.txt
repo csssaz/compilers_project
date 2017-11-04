@@ -1,9 +1,4 @@
 cmake_minimum_required(VERSION 3.8)
-project(Compilers)
-
-#add_subdirectory(parser)
-add_subdirectory(lexer)
-add_subdirectory(test)
 
 find_package(FLEX)
 FLEX_TARGET(DecafLexer decaf.l ${CMAKE_CURRENT_BINARY_DIR}/../lexer_decaf.cpp)
@@ -14,5 +9,5 @@ BISON_TARGET(DecafParser decaf.yy ${CMAKE_CURRENT_BINARY_DIR}/../parser_decaf.cp
 set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include -Wall -Wextra -ansi -pedantic")
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES ${BISON_DecafParser_OUTPUTS} ${FLEX_DecafLexer_OUTPUTS} main.cpp ast.h tac.h parser.h bparser.h symbol_table.h)
-add_executable(DecafComp ${SOURCE_FILES})
+set(SOURCE_FILES ${BISON_DecafParser_OUTPUTS} ${FLEX_DecafLexer_OUTPUTS} main.cpp ast.h parser.h hparser.cpp hparser.h bparser.h)
+add_executable(DecafParser ${SOURCE_FILES})

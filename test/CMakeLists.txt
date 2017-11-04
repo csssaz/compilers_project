@@ -5,10 +5,11 @@ target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
 set(CMAKE_CXX_FLAGS "-I/usr/local/opt/flex/include")
 set(CMAKE_CXX_STANDARD 11)
 
-include_directories(${Compilers_SOURCE_DIR}/)
+include_directories(${Compilers_SOURCE_DIR}/parser)
 include_directories(${Compilers_SOURCE_DIR}/lexer)
 
-set(TEST_SRC_PARSER ${Compilers_SOURCE_DIR}/parser_decaf.cpp ${Compilers_SOURCE_DIR}/lexer_decaf.cpp  ${Compilers_SOURCE_DIR}/hparser.h ${Compilers_SOURCE_DIR}/hparser.cpp )
+set(TEST_SRC_PARSER ${Compilers_SOURCE_DIR}/parser/parser_decaf.cpp ${Compilers_SOURCE_DIR}/parser/lexer_decaf.cpp  ${Compilers_SOURCE_DIR}/parser/hparser.h ${Compilers_SOURCE_DIR}/parser/hparser.cpp )
+
 set(TEST_FILES_PARSER test_parser.cpp)
 add_executable(test_parser ${TEST_FILES_PARSER} ${TEST_SRC_PARSER})
 

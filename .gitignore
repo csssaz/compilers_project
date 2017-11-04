@@ -90,10 +90,10 @@ fabric.properties
 
 .idea/
 
-flexer.cpp
-parser_decaf.cpp
-parser_decaf.hpp
-lexer_decaf.cpp
-position.hh
-stack.hh
-location.hh
+*flexer.cpp
+*parser_decaf.cpp
+*parser_decaf.hpp
+*lexer_decaf.cpp
+*position.hh
+*stack.hh
+*location.hh

@@ -26,4 +26,4 @@ class BParser : public Parser {
   virtual std::string get_name() const override { return "Bison"; }
 };
 
-#endif  // DECAFPARSER_BPARSER_H
+#endif //DECAFPARSER_BPARSER_H

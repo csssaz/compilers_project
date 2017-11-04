@@ -6,7 +6,7 @@
 #include "ast.h"
 #include "parser_decaf.hpp"
 using decaf = yy::parser_decaf;
-#define YY_DECL decaf::symbol_type yylex()
+#define YY_DECL decaf::symbol_type yylex ()
 YY_DECL;
 
 class Parser {
@@ -40,4 +40,4 @@ class Parser {
   Node* ast_;
 };
 
-#endif  // DECAFPARSER_PARSER_H
+#endif //DECAFPARSER_PARSER_H
