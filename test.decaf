@@ -12,6 +12,8 @@ class Test {
           writeln(1);
         }
         else {
+          x = 5.0;
+          x--;
           a = 0 || i < j;
           writeln(a);
           a = i > j || !(i < j);
@@ -31,5 +33,9 @@ class Test {
         writeln(j);
         j--;
         writeln(j);
+        x--;
+        writeln(x);
+        x--;
+        writeln(x);
     }
 }

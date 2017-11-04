@@ -22,6 +22,8 @@
                      GOTO                                            lab_rel_end_2
   lab_rel_true_2:  ASSIGN                  1                                    t2
    lab_rel_end_2:      EQ                 t2                  1   lab_true_block_1
+                   ASSIGN                5.0                                     x
+                      SUB                  x                1.0                  x
                       VAR                                                       t3
                        EQ                  0                  1      lab_or_true_3
                       VAR                                                       t4
@@ -102,5 +104,11 @@ lab_true_block_1:  APARAM                                                       
                      CALL                                                  writeln
                       SUB                  j                  1                  j
                    APARAM                                                        j
+                     CALL                                                  writeln
+                      SUB                  x                1.0                  x
+                   APARAM                                                        x
+                     CALL                                                  writeln
+                      SUB                  x                1.0                  x
+                   APARAM                                                        x
                      CALL                                                  writeln
                    RETURN                                                         
