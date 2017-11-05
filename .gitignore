@@ -98,3 +98,4 @@ fabric.properties
 *stack.hh
 *location.hh
 *JTacInt.jar
+*.tac

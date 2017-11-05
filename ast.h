@@ -117,10 +117,17 @@ class AndExprNode : public ExprNode {
     tac.append(TAC::InstrType::VAR, result_var);
 
     lhs_->icg(data, tac);
+    auto lhs_type = data.expr_return_type;
     tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_and_false);
 
     rhs_->icg(data, tac);
     tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_and_false);
+
+    if (lhs_type != ValueType::IntVal ||
+        data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in logical && (operands are not integer values).");
+    }
 
     tac.append(TAC::InstrType::ASSIGN, "1", result_var);
     tac.append(TAC::InstrType::GOTO, lab_and_end);
@@ -156,9 +163,16 @@ class OrExprNode : public ExprNode {
 
     lhs_->icg(data, tac);
     tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_or_true);
+    auto lhs_type = data.expr_return_type;
 
     rhs_->icg(data, tac);
     tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_or_true);
+
+    if (lhs_type != ValueType::IntVal ||
+        data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in logical || (operands are not integer values).");
+    }
 
     tac.append(TAC::InstrType::ASSIGN, "0", result_var);
     tac.append(TAC::InstrType::GOTO, lab_or_end);
@@ -325,14 +339,21 @@ class ArithmeticExprNode : public ExprNode {
   virtual void icg(Data& data, TAC& tac) const override {
     lhs_->icg(data, tac);
     std::string lhs_var = data.expr_return_var;
+    auto lhs_type = data.expr_return_type;
     rhs_->icg(data, tac);
     std::string rhs_var = data.expr_return_var;
+
+    if (lhs_type != data.expr_return_type) {
+      warning_msg("Mixing int and real types in operation " +
+                  tac.IName[instr_type_] + ".");
+    }
 
     std::string result_var = tac.tmp_variable_name(data.variable_no++);
     tac.append(TAC::InstrType::VAR, result_var);
 
     tac.append(instr_type_, lhs_var, rhs_var, result_var);
     data.expr_return_var = result_var;
+    data.expr_return_type = lhs_type;
   }
 
  protected:
@@ -549,10 +570,12 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
       } else {
         // write / writeln
         if (expr_list_->size() != 1) {
-          warning_msg("Method '" + id_ + "' accepts 1 argument but " + std::to_string(expr_list_->size()) + " given.");
+          warning_msg("Method '" + id_ + "' accepts 1 argument but " +
+                      std::to_string(expr_list_->size()) + " given.");
         }
 
-        // In the case of more than one argument, add only the first one to TAC code
+        // In the case of more than one argument, add only the first one to TAC
+        // code
         expr_list_->front()->icg(data, tac);
         tac.append(TAC::InstrType::APARAM, data.expr_return_var);
         tac.append(TAC::InstrType::CALL, id_);
@@ -594,10 +617,11 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
         givenParams += tostr(data.expr_return_type);
 
         if (tostr(data.expr_return_type) != *iterFormal) {
-          // Type of actual parameter does not match the type of formal parameter
+          // Type of actual parameter does not match the type of formal
+          // parameter
           wrongParameters = true;
         }
-        
+
         if (iterFormal != formal_parameters.end()) {
           ++iterFormal;
         }
@@ -608,7 +632,8 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
       }
 
       if (wrongParameters) {
-        warning_msg("Parameters mismatch for method call '" + id_ + "': expected " + expectedParams + "; given " + givenParams);
+        warning_msg("Parameters mismatch for method call '" + id_ +
+                    "': expected " + expectedParams + "; given " + givenParams);
       }
 
       tac.append(TAC::InstrType::CALL, id_);
@@ -821,6 +846,11 @@ class IfStmNode : public StmNode {
     data.label_no++;
 
     expr_->icg(data, tac);
+    if (data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in if statement (conditional statement is not an "
+          "integer value).");
+    }
     tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_true_block);
     if (stm_else_ != nullptr) {
       stm_else_->icg(data, tac);
@@ -861,6 +891,11 @@ class ForStmNode : public StmNode {
 
     tac.label_next_instr(lab_for_expr);
     expr_->icg(data, tac);
+    if (data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in for statement (conditional statement is not an "
+          "integer value).");
+    }
 
     tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_for_end);
     stms_->icg(data, tac);

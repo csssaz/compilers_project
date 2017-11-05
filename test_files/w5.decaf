@@ -1,0 +1,9 @@
+class Warning5 {
+  static void main() {
+    int j;
+    j = 1;
+    if (j && 3.0) {
+      writeln(1);
+    }
+  }
+}
