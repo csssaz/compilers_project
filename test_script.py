@@ -28,7 +28,7 @@ def test_basic():
   time.sleep(1)
   with open('temp.txt', 'r') as f:
     res = [l.strip() for l in f][2:]
-    expected = ['6', '1', '0', '1212', '1111', '666', '2', '1', '3.0', '2.0']
+    expected = ['6', '6', '300', '6', '1', '0', '1212', '1111', '666', '2', '1', '3.0', '2.0']
     print('got:\t\t{}'.format(','.join(res)))
     print('expected:\t{}'.format(','.join(expected)))
     assert res == expected, 'woopxx'

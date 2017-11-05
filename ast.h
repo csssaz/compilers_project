@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <sstream>
 #include <stack>
 #include <string>
-#include <sstream>
 #include "symbol_table.h"
 #include "tac.h"
 
@@ -609,7 +609,11 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
       // Get the list of actual parameters
       for (auto expr : *expr_list_) {
         expr->icg(data, tac);
-        expr_var_names.push_back(data.expr_return_var);
+        // save result into new variable
+        std::string param_var = tac.tmp_variable_name(data.variable_no++);
+        tac.append(TAC::InstrType::VAR, param_var);
+        tac.append(TAC::InstrType::ASSIGN, data.expr_return_var, param_var);
+        expr_var_names.push_back(param_var);
 
         if (!givenParams.empty()) {
           givenParams += ", ";
