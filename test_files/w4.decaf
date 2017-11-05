@@ -1,0 +1,6 @@
+class Warning4 {
+  static void main() {
+    int x;
+    x = 1 || 1.0;
+  }
+}
