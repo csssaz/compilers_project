@@ -1,0 +1,56 @@
+class Test9 {
+    int mod;
+    
+    static int fast_mod_exp(int b, int e) {
+        if (e == 0) {
+            return 1;
+        }
+        if (e == 1) {
+            return b;
+        }
+        if (e % 2 == 0) {
+            return fast_mod_exp((b*b) % mod, e / 2) % mod;
+        }
+        return (b * (fast_mod_exp((b*b) % mod, (e-1) / 2) % mod)) % mod;
+    }
+
+    static int is_prime(int n) {
+        int div, i;
+        i = 0;
+        if (n == 2 || n == 3) {
+            return 1;
+        }
+        if (n % 2 == 0) {
+            return 0;
+        }
+        for (div = 3; div * div <= n; i++) {
+            if (n % div == 0) {
+                return 0;
+            }
+            div = div + 2;
+        }
+        return 1;
+    }
+
+    static void main() {
+        int i;
+        mod = 1000000007;
+        writeln(is_prime(mod));
+        for (i = 1000; i < 20000000; i++) {
+            if (is_prime(i)) {
+                mod = i;
+                break;
+            }
+        }
+        writeln(mod);
+        writeln(is_prime(mod));
+        
+        writeln(fast_mod_exp(2, 3));
+        writeln(fast_mod_exp(5, 5));
+        writeln(fast_mod_exp(3, 17));
+        writeln(fast_mod_exp(17423, 103123));
+        writeln(fast_mod_exp(1112, 7777777));
+        writeln(fast_mod_exp(9912, 76457812));
+        writeln(fast_mod_exp(666, 66666666));
+    }
+}
