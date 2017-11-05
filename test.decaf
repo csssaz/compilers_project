@@ -1,41 +1,53 @@
 class Test {
-    int i, j, a;
-    real x;
+  int i, j, a;
+  real x;
+  static int sum(int a, int b) {
+    return a + b;
+  }
 
-    static void main() {
-        int k;
-        i = 2;
-        j = 3;
-        k = i * j;
-        writeln(k);
-        if (i > j) {
-          writeln(1);
-        }
-        else {
-          x = 5.0;
-          x--;
-          a = 0 || i < j;
-          writeln(a);
-          a = i > j || !(i < j);
-          writeln(a);
-          if (i < j) {
-            writeln(1212);
-          }
-          if (i > j) {
-            writeln(-1);
-          }
-          else {
-            writeln(1111);
-          }
-          writeln(666);
-        }
-        j--;
-        writeln(j);
-        j--;
-        writeln(j);
-        x--;
-        writeln(x);
-        x--;
-        writeln(x);
+  static int mult(int a, int b, int c) {
+    return a * b * c;
+  }
+
+  static void main() {
+    int y, k;
+    y = sum(1, sum(2, 3));
+    writeln(y);
+    writeln(sum(1, sum(sum(1, 1), sum(1, 2))));
+    writeln(mult(sum(1, 1), mult(1, sum(1, 1), 3), sum(1, mult(2, 3, 4))));
+
+    i = 2;
+    j = 3;
+    k = i * j;
+    writeln(k);
+    if (i > j) {
+      writeln(1);
     }
+    else {
+      x = 5.0;
+      x--;
+      a = 0 || i < j;
+      writeln(a);
+      a = i > j || !(i < j);
+      writeln(a);
+      if (i < j) {
+        writeln(1212);
+      }
+      if (i > j) {
+        writeln(-1);
+      }
+      else {
+        writeln(1111);
+      }
+      writeln(666);
+    }
+    j--;
+    writeln(j);
+    j--;
+    writeln(j);
+    x--;
+    writeln(x);
+    x--;
+    writeln(x);
+ }
 }
