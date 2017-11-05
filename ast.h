@@ -570,10 +570,12 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
       } else {
         // write / writeln
         if (expr_list_->size() != 1) {
-          warning_msg("Method '" + id_ + "' accepts 1 argument but " + std::to_string(expr_list_->size()) + " given.");
+          warning_msg("Method '" + id_ + "' accepts 1 argument but " +
+                      std::to_string(expr_list_->size()) + " given.");
         }
 
-        // In the case of more than one argument, add only the first one to TAC code
+        // In the case of more than one argument, add only the first one to TAC
+        // code
         expr_list_->front()->icg(data, tac);
         tac.append(TAC::InstrType::APARAM, data.expr_return_var);
         tac.append(TAC::InstrType::CALL, id_);
@@ -615,10 +617,11 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
         givenParams += tostr(data.expr_return_type);
 
         if (tostr(data.expr_return_type) != *iterFormal) {
-          // Type of actual parameter does not match the type of formal parameter
+          // Type of actual parameter does not match the type of formal
+          // parameter
           wrongParameters = true;
         }
-        
+
         if (iterFormal != formal_parameters.end()) {
           ++iterFormal;
         }
@@ -629,7 +632,8 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
       }
 
       if (wrongParameters) {
-        warning_msg("Parameters mismatch for method call '" + id_ + "': expected " + expectedParams + "; given " + givenParams);
+        warning_msg("Parameters mismatch for method call '" + id_ +
+                    "': expected " + expectedParams + "; given " + givenParams);
       }
 
       tac.append(TAC::InstrType::CALL, id_);
