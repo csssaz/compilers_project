@@ -6,6 +6,7 @@
 #include <list>
 #include <stack>
 #include <string>
+#include <sstream>
 #include "symbol_table.h"
 #include "tac.h"
 
@@ -537,16 +538,82 @@ class MethodCallExprStmNode : public ExprNode, public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    std::vector<std::string> expr_var_names;
-    for (auto expr : *expr_list_) {
-      expr->icg(data, tac);
-      expr_var_names.push_back(data.expr_return_var);
+    // Find symbol table entry for this method
+    SymbolTable::Entry* entry = data.sym_table.lookup("", id_);
+
+    if (entry == nullptr) {
+      // No entry in symbol table for this method
+      if (id_ != "writeln" && id_ != "write") {
+        // Undeclared method
+        error_msg("Method '" + id_ + "' undeclared.");
+      } else {
+        // write / writeln
+        if (expr_list_->size() != 1) {
+          warning_msg("Method '" + id_ + "' accepts 1 argument but " + std::to_string(expr_list_->size()) + " given.");
+        }
+
+        // In the case of more than one argument, add only the first one to TAC code
+        expr_list_->front()->icg(data, tac);
+        tac.append(TAC::InstrType::APARAM, data.expr_return_var);
+        tac.append(TAC::InstrType::CALL, id_);
+        data.expr_return_var = id_;
+      }
+    } else {
+      // Get the list of types of formal parameters
+      std::vector<std::string> formal_parameters = std::vector<std::string>();
+      std::stringstream ss(entry->signature);
+      std::string token;
+      std::string expectedParams = "";
+      while (std::getline(ss, token, ':')) {
+        if (token.empty()) {
+          // Skip empty strings because of delimiter ::
+          continue;
+        }
+        if (!expectedParams.empty()) {
+          expectedParams += ", ";
+        }
+        expectedParams += token;
+        formal_parameters.push_back(token);
+      }
+
+      bool wrongParameters = formal_parameters.size() != expr_list_->size();
+
+      auto iterFormal = formal_parameters.begin();
+
+      std::vector<std::string> expr_var_names;
+      std::string givenParams = "";
+
+      // Get the list of actual parameters
+      for (auto expr : *expr_list_) {
+        expr->icg(data, tac);
+        expr_var_names.push_back(data.expr_return_var);
+
+        if (!givenParams.empty()) {
+          givenParams += ", ";
+        }
+        givenParams += tostr(data.expr_return_type);
+
+        if (tostr(data.expr_return_type) != *iterFormal) {
+          // Type of actual parameter does not match the type of formal parameter
+          wrongParameters = true;
+        }
+        
+        if (iterFormal != formal_parameters.end()) {
+          ++iterFormal;
+        }
+      }
+
+      for (auto expr_var : expr_var_names) {
+        tac.append(TAC::InstrType::APARAM, expr_var);
+      }
+
+      if (wrongParameters) {
+        warning_msg("Parameters mismatch for method call '" + id_ + "': expected " + expectedParams + "; given " + givenParams);
+      }
+
+      tac.append(TAC::InstrType::CALL, id_);
+      data.expr_return_var = id_;
     }
-    for (auto expr_var : expr_var_names) {
-      tac.append(TAC::InstrType::APARAM, expr_var);
-    }
-    tac.append(TAC::InstrType::CALL, id_);
-    data.expr_return_var = id_;
   }
 
  protected:
