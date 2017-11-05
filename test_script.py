@@ -35,7 +35,7 @@ def test_basic():
   os.remove('temp.txt')
 
 def test_all_files():
-  filenames = ['test_files/t'+str(i) for i in range(1, 9)]
+  filenames = ['test_files/t'+str(i) for i in range(1, 10)]
   expected = [
       ['6'],
       ['24'],
@@ -45,7 +45,8 @@ def test_all_files():
        '100', '2', '0', '1', '100', '3', '0', '1', '2'],
       ['8', '0', '0'],
       ['8.0', '0.0', '0.5'],
-      ['1', '0', '0', '300', '1', '400', '1']]
+      ['1', '0', '0', '300', '1', '400', '1'],
+      ['1', '1009', '1', '8', '98', '271', '720', '450', '567', '578']]
   for filename, expected_output in zip(filenames, expected):
     res = fetch_result(filename)
     print('got:\t\t{}'.format(','.join(res)))
