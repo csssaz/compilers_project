@@ -1,0 +1,17 @@
+class Warning2 {
+  static int odd(int num) {
+    return !(num % 2);
+  }
+
+  static int dumb() {
+    int i;
+    for (i = 0; 3.0 * 5.0; i++) {
+      writeln(i);
+    }
+  }
+
+  static void main() {
+    int i;
+    writeln(1);
+  }
+}

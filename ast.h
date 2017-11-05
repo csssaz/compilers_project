@@ -754,6 +754,11 @@ class IfStmNode : public StmNode {
     data.label_no++;
 
     expr_->icg(data, tac);
+    if (data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in if statement (conditional statement is not an "
+          "integer value).");
+    }
     tac.append(TAC::InstrType::NE, data.expr_return_var, "0", lab_true_block);
     if (stm_else_ != nullptr) {
       stm_else_->icg(data, tac);
@@ -794,6 +799,11 @@ class ForStmNode : public StmNode {
 
     tac.label_next_instr(lab_for_expr);
     expr_->icg(data, tac);
+    if (data.expr_return_type != ValueType::IntVal) {
+      warning_msg(
+          "Type mismatch in for statement (conditional statement is not an "
+          "integer value).");
+    }
 
     tac.append(TAC::InstrType::EQ, data.expr_return_var, "0", lab_for_end);
     stms_->icg(data, tac);

@@ -1,0 +1,9 @@
+class Warning1 {
+  static void main() {
+    real b;
+    b = 1.0;
+    if (b * 3.1415) {
+      writeln(1);
+    }
+  }
+}
