@@ -50,7 +50,7 @@ def test_all_files():
     res = fetch_result(filename)
     print('got:\t\t{}'.format(','.join(res)))
     print('expected:\t{}'.format(','.join(expected_output)))
-    assert res == expected_output, 'woopzzz'
+    assert res == expected_output, 'woopzzz, failed!'
 
 def test_warnings(num):
  filenames = ['test_files/w'+str(i) for i in range(1, num+1)]
@@ -60,16 +60,18 @@ def test_warnings(num):
     ['WARNING: Type mismatch in if statement (conditional statement is not an integer value).',
     'WARNING: Type mismatch in for statement (conditional statement is not an integer value).',
     'WARNING: Type mismatch in if statement (conditional statement is not an integer value).',
-    'WARNING: Type mismatch in for statement (conditional statement is not an integer value).']
+    'WARNING: Type mismatch in for statement (conditional statement is not an integer value).'],
+    ['WARNING: Type mismatch in logical || (operands are not integer values).'],
+    ['WARNING: Type mismatch in logical && (operands are not integer values).'],
   ]
  for filename, expected_output in zip(filenames, expected):
     res = fetch_compile_result(filename)
     print('got:\t\t{}'.format(','.join(res)))
     print('expected:\t{}'.format(','.join(expected_output)))
-    assert res == expected_output, 'woopzzz'
+    assert res == expected_output, 'woopzzz, failed!'
 
 if __name__ == '__main__':
   test_basic()
   test_all_files()
-  test_warnings(3)
+  test_warnings(5)
 
