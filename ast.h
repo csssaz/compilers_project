@@ -686,7 +686,7 @@ class BreakStmNode : public StmNode {
       std::string label = tac.label_name("for_end", data.for_label_no.top());
       tac.append(TAC::InstrType::GOTO, label);
     } else {
-      warning_msg("Break statement used outside a loop.");
+      error_msg("Break statement used outside a loop.");
     }
   }
 };
@@ -704,7 +704,7 @@ class ContinueStmNode : public StmNode {
       std::string label = tac.label_name("for_incr", data.for_label_no.top());
       tac.append(TAC::InstrType::GOTO, label);
     } else {
-      warning_msg("Continue statement used outside a loop.");
+      error_msg("Continue statement used outside a loop.");
     }
   }
 };
