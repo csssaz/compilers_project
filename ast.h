@@ -682,8 +682,12 @@ class BreakStmNode : public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    std::string label = tac.label_name("for_end", data.for_label_no.top());
-    tac.append(TAC::InstrType::GOTO, label);
+    if (!data.for_label_no.empty()) {
+      std::string label = tac.label_name("for_end", data.for_label_no.top());
+      tac.append(TAC::InstrType::GOTO, label);
+    } else {
+      warning_msg("Break statement used outside a loop.");
+    }
   }
 };
 
@@ -696,8 +700,12 @@ class ContinueStmNode : public StmNode {
   }
 
   virtual void icg(Data& data, TAC& tac) const override {
-    std::string label = tac.label_name("for_incr", data.for_label_no.top());
-    tac.append(TAC::InstrType::GOTO, label);
+    if (!data.for_label_no.empty()) {
+      std::string label = tac.label_name("for_incr", data.for_label_no.top());
+      tac.append(TAC::InstrType::GOTO, label);
+    } else {
+      warning_msg("Continue statement used outside a loop.");
+    }
   }
 };
 
