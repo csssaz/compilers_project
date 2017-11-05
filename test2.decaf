@@ -1,0 +1,22 @@
+class ErrorTest {
+    static void main() {
+        int i;
+        if ( 3 < 2 ) {
+            writeln(6);
+            continue;
+            writeln(7);
+            break;
+            writeln(8);
+        }
+        for ( i = 10; i > 0; i--) {
+            if ( i > 7 ) {
+                continue;
+            }
+            write(10);
+            writeln(i);
+            if (i == 3) {
+                break;
+            }
+        }
+    }
+}
