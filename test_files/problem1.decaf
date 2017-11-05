@@ -1,0 +1,16 @@
+class Problem1 {
+    int i, j;
+    real x;
+
+    static void main() {
+        int k;
+        i = 2;
+        j = problematic();
+        k = i * j;
+        writeln(k);
+    }
+
+    static int problematic() {
+        return 5;
+    }
+}
